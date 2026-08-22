@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+pandas
+requests
+mysql-connector-python
+pydantic-settings
+python-dotenv
+sqlalchemy
+numpy
+scikit-learn
