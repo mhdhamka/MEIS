@@ -580,49 +580,6 @@ Changes to the data model should propagate through the pipeline rather than bein
 
 ---
 
-# Roadmap
-
-### Phase 1 — Foundation
-
-* [x] Project architecture
-* [x] Frontend foundation
-* [x] FastAPI backend
-* [x] Relational data model
-* [x] Initial ETL pipeline
-* [x] Interactive dashboard
-
-### Phase 2 — Electoral Intelligence
-
-* [ ] Complete parliamentary dataset
-* [ ] Complete DUN dataset
-* [ ] Historical election comparison
-* [ ] Advanced constituency analytics
-* [ ] Candidate profiles
-* [ ] Party performance analysis
-* [ ] Electoral map layers
-
-### Phase 3 — Intelligence Layer
-
-* [ ] Advanced trend detection
-* [ ] Electoral swing analysis
-* [ ] Constituency similarity analysis
-* [ ] Historical pattern detection
-* [ ] Statistical forecasting
-* [ ] AI-assisted electoral analysis
-
-### Phase 4 — Platform
-
-* [ ] Public API
-* [ ] User accounts
-* [ ] Saved investigations
-* [ ] Custom dashboards
-* [ ] Exportable reports
-* [ ] Automated pipeline scheduling
-* [ ] Production deployment
-* [ ] Monitoring & observability
-
----
-
 # Data & Ethics
 
 MEIS is intended as a **research, educational, and analytical platform**.
