@@ -426,7 +426,7 @@ Malaysia-Election-Intelligence-System/
 
 ---
 
-# 🔌 API
+# API
 
 MEIS exposes electoral data through a FastAPI REST interface.
 
