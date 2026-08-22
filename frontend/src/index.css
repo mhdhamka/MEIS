@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  font-family: Inter, system-ui, sans-serif;
-  background: #05070a;
-  color: #f8fafc;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f1f5f9;
+  color: #1e293b;
 }
 
 * {
@@ -13,5 +13,30 @@
 body {
   margin: 0;
   min-width: 320px;
-  background: #05070a;
+  background: #f1f5f9;
+  color: #334155;
+}
+
+/* SPR Government Portal Theme Customizations */
+
+/* Sidebar & Top Navigation Styling */
+aside, nav {
+  background-color: #0b2545 !important;
+  border-right: 1px solid #134074 !important;
+}
+
+/* Main Content Area Container */
+main {
+  background-color: #f8fafc;
+}
+
+/* Official Government Card Styling */
+.card, div[class*="bg-"] {
+  /* For cards that use dark backgrounds, shift them to crisp government whites if desired */
+}
+
+/* Custom classes for headers and accents */
+.spr-header-bar {
+  background: linear-gradient(90deg, #0b2545 0%, #134074 100%);
+  border-bottom: 3px solid #ffb703; /* Official Malaysian gold/yellow accent strip */
 }
