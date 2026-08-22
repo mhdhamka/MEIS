@@ -1,8 +1,8 @@
 <div align="center">
 
-# 🇲🇾 Malaysia Electoral Intelligence System (MEIS)
+# 🇲🇾 Malaysia Election Intelligence System (MEIS)
 
-**An open electoral intelligence platform for exploring Malaysian parliamentary and state assembly elections through structured data, interactive geospatial analysis, historical trends, and automated data pipelines.**
+**An open election intelligence platform for exploring Malaysian parliamentary and state assembly elections through structured data, interactive geospatial analysis, historical trends, and automated data pipelines.**
 
 <br />
 
@@ -23,7 +23,7 @@
 
 ## What is MEIS?
 
-**Malaysia Electoral Intelligence System (MEIS)** is a data-driven platform designed to transform fragmented Malaysian electoral data into an interactive intelligence workspace.
+**Malaysia Election Intelligence System (MEIS)** is a data-driven platform designed to transform fragmented Malaysian electoral data into an interactive intelligence workspace.
 
 Instead of treating election results as static tables, MEIS connects **constituencies, candidates, parties, states, election cycles, vote counts, margins, and geographic information** into a unified analytical system.
 
