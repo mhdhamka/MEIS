@@ -4,6 +4,9 @@ from app.routes.elections import router as elections_router
 from app.routes.parties import router as parties_router
 from app.routes.states import router as states_router
 from app.routes.seats import router as seats_router
+from app.routes.results import router as results_router
+from app.routes.candidates import router as candidates_router
+from app.routes.analytics import router as analytics_router
 
 
 app = FastAPI(
@@ -21,6 +24,9 @@ app.include_router(elections_router)
 app.include_router(parties_router)
 app.include_router(states_router)
 app.include_router(seats_router)
+app.include_router(results_router)
+app.include_router(candidates_router)
+app.include_router(analytics_router)
 
 
 # ============================================================
