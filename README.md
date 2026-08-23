@@ -1,8 +1,8 @@
 <div align="center">
 
-# 🇲🇾 Malaysia Election Intelligence System (MEIS)
+# 🇲🇾 Malaysia Electoral Intelligence System (MEIS)
 
-**An open election intelligence platform for exploring Malaysian parliamentary and state assembly elections through structured data, interactive geospatial analysis, historical trends, and automated data pipelines.**
+**An open electoral intelligence platform for exploring Malaysian parliamentary and state assembly elections through structured data, interactive geospatial analysis, historical trends, and automated data pipelines.**
 
 <br />
 
