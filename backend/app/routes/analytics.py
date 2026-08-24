@@ -2,7 +2,6 @@ from fastapi import APIRouter, HTTPException
 from app.database.connection import get_connection
 
 router = APIRouter(
-    prefix="/api/v1/analytics",
     tags=["Analytics"]
 )
 
@@ -270,7 +269,7 @@ def get_winning_margins(
 
 @router.get("/election-comparison")
 def election_comparison(
-    seat_id: int
+    seat_id: int | None = None
 ):
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
@@ -293,11 +292,11 @@ def election_comparison(
                 ON er.candidate_id = c.candidate_id
             LEFT JOIN parties p
                 ON er.party_id = p.party_id
-            WHERE er.seat_id = %s
+            WHERE (%s IS NULL OR er.seat_id = %s)
             ORDER BY e.election_year DESC, er.total_votes DESC
         """
 
-        cursor.execute(query, (seat_id,))
+        cursor.execute(query, (seat_id, seat_id))
 
         return cursor.fetchall()
 

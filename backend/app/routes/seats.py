@@ -2,7 +2,6 @@ from fastapi import APIRouter, Query
 from app.database.connection import get_connection
 
 router = APIRouter(
-    prefix="/api/seats",
     tags=["Seats"]
 )
 

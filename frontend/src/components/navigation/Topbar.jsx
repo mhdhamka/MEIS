@@ -2,7 +2,7 @@ import { Search, Bell, Activity } from "lucide-react";
 
 export default function Topbar() {
   return (
-    <header className="fixed left-64 right-0 top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-6 backdrop-blur shadow-xs">
+    <header className="flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white/95 px-6 backdrop-blur shadow-xs shrink-0">
       <div>
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#134074]">
           Malaysia
