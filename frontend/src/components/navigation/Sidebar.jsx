@@ -42,7 +42,7 @@ const navigation = [
 
 export default function Sidebar() {
   return (
-    <aside className="fixed left-0 top-0 z-45 h-screen w-64 border-r border-[#134074] bg-[#0b2545] text-slate-100 shadow-sm">
+    <aside className="relative flex flex-col h-full w-64 shrink-0 border-r border-[#134074] bg-[#0b2545] text-slate-100 shadow-sm">
       {/* Official Header branding */}
       <div className="flex h-16 items-center border-b border-[#134074]/60 px-6 bg-[#07192f]">
         <div>
@@ -57,7 +57,7 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation Links */}
-      <nav className="p-4 space-y-6">
+      <nav className="p-4 space-y-6 flex-1 overflow-y-auto">
         <div>
           <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400">
             System Modules
@@ -81,7 +81,7 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer System Status */}
-      <div className="absolute bottom-0 w-full border-t border-[#134074]/60 bg-[#07192f] p-4">
+      <div className="border-t border-[#134074]/60 bg-[#07192f] p-4">
         <div className="flex items-center gap-2 text-xs text-slate-300">
           <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
           <span className="font-medium">Portal Active</span>

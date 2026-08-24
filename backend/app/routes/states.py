@@ -4,7 +4,6 @@ from app.database.connection import get_connection
 
 
 router = APIRouter(
-    prefix="/api/states",
     tags=["States"]
 )
 
