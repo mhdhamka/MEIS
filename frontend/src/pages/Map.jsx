@@ -1,5 +1,5 @@
 import { useState } from "react";
-import MapToolbar from "../components/maps/MapToolbar";
+import MapToolbar from "../components/maps/MapToolBar";
 import ElectoralMapContainer from "../components/maps/ElectoralMapContainer";
 
 export default function MapPage() {
@@ -12,7 +12,10 @@ export default function MapPage() {
 
       {/* Render Leaflet Map Viewport */}
       <div className="flex-1 w-full h-full relative">
-        <ElectoralMapContainer activeLayer={activeLayer} />
+        <ElectoralMapContainer
+            activeLayer={activeLayer}
+            layerType="parliament"
+        />
       </div>
     </div>
   );
