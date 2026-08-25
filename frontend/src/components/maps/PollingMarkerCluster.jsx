@@ -1,29 +1,96 @@
 import { Marker, Popup } from "react-leaflet";
+import { useGeoSpatialData } from "../../hooks/useGeoSpatialData";
 
-export default function PollingMarkerCluster({ onSelectHub }) {
-  const hubs = [
-    { id: 1, name: "Petra Jaya Hub", coords: [1.5533, 110.3592], electorate: 85000 },
-    { id: 2, name: "Stampin District Center", coords: [1.5076, 110.3458], electorate: 120000 },
-  ];
+export default function PollingMarkerCluster({
+    layerType = "parliament",
+    intelligenceLayer = "boundaries",
+    onSelectHub
+}) {
+    // Note: useGeoSpatialData expects (layerType, customApiBaseUrl) based on the updated hook signature
+    const {
+        data,
+        loading,
+        error
+    } = useGeoSpatialData(layerType);
 
-  return (
-    <>
-      {hubs.map((hub) => (
-        <Marker
-          key={hub.id}
-          position={hub.coords}
-          eventHandlers={{
-            click: () => onSelectHub && onSelectHub(hub),
-          }}
-        >
-          <Popup>
-            <div className="p-1">
-              <h5 className="text-xs font-bold text-slate-900">{hub.name}</h5>
-              <p className="text-[11px] text-slate-600">Voters: {hub.electorate.toLocaleString()}</p>
-            </div>
-          </Popup>
-        </Marker>
-      ))}
-    </>
-  );
+    if (loading || error || !data) {
+        return null;
+    }
+
+    const features = data.features ?? [];
+
+    return (
+        <>
+            {features.map((feature, index) => {
+                const properties = feature.properties ?? {};
+                const centroid = properties.centroid;
+
+                // No valid geometry center
+                if (!centroid) {
+                    return null;
+                }
+
+                return (
+                    <Marker
+                        key={
+                            properties.seat_code ??
+                            feature.id ??
+                            index
+                        }
+                        position={centroid}
+                        eventHandlers={{
+                            click: () => {
+                                if (onSelectHub) {
+                                    onSelectHub(properties);
+                                }
+                            }
+                        }}
+                    >
+                        <Popup>
+                            <div className="p-1 min-w-[180px]">
+                                <h5 className="text-xs font-bold text-slate-900">
+                                    {properties.seat_name ??
+                                        "Unknown Constituency"}
+                                </h5>
+
+                                <p className="text-[11px] text-slate-600 mt-1">
+                                    State:{" "}
+                                    <strong>
+                                        {properties.state_name ??
+                                            "N/A"}
+                                    </strong>
+                                </p>
+
+                                <p className="text-[11px] text-slate-600">
+                                    Code:{" "}
+                                    <strong>
+                                        {properties.seat_code ??
+                                            "N/A"}
+                                    </strong>
+                                </p>
+
+                                <p className="text-[11px] text-slate-600">
+                                    Votes:{" "}
+                                    <strong>
+                                        {Number(
+                                            properties.total_votes ??
+                                                0
+                                        ).toLocaleString()}
+                                    </strong>
+                                </p>
+
+                                <p className="text-[11px] text-slate-600">
+                                    Dominant Party:{" "}
+                                    <strong>
+                                        {properties.dominant_party ??
+                                            "N/A"}
+                                    </strong>
+                                </p>
+                            </div>
+                        </Popup>
+                    </Marker>
+                );
+            })}
+        </>
+    );
 }
