@@ -1,103 +1,128 @@
 const API_BASE_URL = "http://localhost:8000/api/v1";
 
-async function request(endpoint) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`);
+async function request(endpoint, options = {}) {
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+      ...options,
+    });
 
     if (!response.ok) {
-        throw new Error(
-            `API request failed: ${response.status} ${response.statusText}`
-        );
+      throw new Error(
+        `API request failed: ${response.status} ${response.statusText}`
+      );
     }
 
-    return response.json();
+    return await response.json();
+  } catch (error) {
+    console.error(`[MEIS API] ${endpoint}`, error);
+    throw error;
+  }
 }
-
 
 // ============================================================
-// ANALYTICS
+// SYSTEM
 // ============================================================
 
-export function getElectionSummary() {
-    return request("/analytics/overview");
+export function getHealth() {
+  return fetch("http://localhost:8000/health").then((response) =>
+    response.json()
+  );
 }
-
-
-export function getPartySeatDistribution(electionId = null, seatType = null) {
-    const params = new URLSearchParams();
-    if (electionId) params.append("election_id", electionId);
-    if (seatType) params.append("seat_type", seatType);
-    const query = params.toString() ? `?${params.toString()}` : "";
-    return request(`/analytics/party-performance${query}`);
-}
-
-
-export function getStateSeatDistribution(electionId = null) {
-    const query = electionId ? `?election_id=${electionId}` : "";
-    return request(`/analytics/state-performance${query}`);
-}
-
-
-export function getElectionTrends(seatId = null) {
-    const query = seatId ? `?seat_id=${seatId}` : "";
-    return request(`/analytics/election-comparison${query}`);
-}
-
 
 // ============================================================
-// GENERAL API
+// STATES, ELECTIONS, SEATS, CANDIDATES, PARTIES, RESULTS
 // ============================================================
 
 export function getStates() {
-    return request("/states");
+  return request("/states");
 }
-
 
 export function getElections() {
-    return request("/elections");
+  return request("/elections");
 }
 
-
-export function getResults() {
-    return request("/results");
+export function getSeats() {
+  return request("/seats");
 }
-
 
 export function getCandidates() {
-    return request("/candidates");
+  return request("/candidates");
 }
-
 
 export function getParties() {
-    return request("/parties");
+  return request("/parties");
 }
 
+export function getResults() {
+  return request("/results");
+}
 
 // ============================================================
-// API OBJECT
+// ANALYTICS & ADVANCED QUERIES
+// ============================================================
+
+export function getOverviewAnalytics() {
+  return request("/analytics/overview");
+}
+
+export function getElectionSummary() {
+  return request("/analytics/overview");
+}
+
+export function getStatePerformance() {
+  return request("/analytics/state-performance");
+}
+
+export function getPartyPerformance() {
+  return request("/analytics/party-performance");
+}
+
+export function getWinningMargins() {
+  return request("/analytics/winning-margins");
+}
+
+export function getPartySeatDistribution(electionId = null, seatType = null) {
+  const params = new URLSearchParams();
+  if (electionId) params.append("election_id", electionId);
+  if (seatType) params.append("seat_type", seatType);
+  const query = params.toString() ? `?${params.toString()}` : "";
+  return request(`/analytics/party-performance${query}`);
+}
+
+export function getStateSeatDistribution(electionId = null) {
+  const query = electionId ? `?election_id=${electionId}` : "";
+  return request(`/analytics/state-performance${query}`);
+}
+
+export function getElectionTrends(seatId = null) {
+  const query = seatId ? `?seat_id=${seatId}` : "";
+  return request(`/analytics/election-comparison${query}`);
+}
+
+// ============================================================
+// API BUNDLE OBJECT
 // ============================================================
 
 export const api = {
-
-    getDashboardAnalytics() {
-        return request("/analytics/overview");
-    },
-
-    getElectionSummary,
-
-    getPartySeatDistribution,
-
-    getStateSeatDistribution,
-
-    getElectionTrends,
-
-    getStates,
-
-    getElections,
-
-    getResults,
-
-    getCandidates,
-
-    getParties,
-
+  getDashboardAnalytics() {
+    return request("/analytics/overview");
+  },
+  getElectionSummary,
+  getPartySeatDistribution,
+  getStateSeatDistribution,
+  getElectionTrends,
+  getOverviewAnalytics,
+  getStatePerformance,
+  getPartyPerformance,
+  getWinningMargins,
+  getStates,
+  getElections,
+  getSeats,
+  getResults,
+  getCandidates,
+  getParties,
 };

@@ -3,14 +3,57 @@ import { useGeoSpatialData } from "../../hooks/useGeoSpatialData";
 
 export default function ConstituencyLayer({
     activeLayer,
-    layerType = "parliament",
     onSelectConstituency
 }) {
+
+    /*
+     * The current map is displaying parliamentary
+     * constituencies.
+     *
+     * Change this later for a DUN selector.
+     */
+    const geoLayerType = "parliament";
+
+
     const {
         data: geoJsonData,
         loading,
         error
-    } = useGeoSpatialData(layerType);
+    } = useGeoSpatialData(geoLayerType);
+
+
+    // ============================================================
+    // LOADING
+    // ============================================================
+
+    if (loading) {
+        return null;
+    }
+
+
+    // ============================================================
+    // ERROR
+    // ============================================================
+
+    if (error) {
+
+        console.error(
+            "Constituency GeoJSON error:",
+            error
+        );
+
+        return null;
+    }
+
+
+    // ============================================================
+    // NO DATA
+    // ============================================================
+
+    if (!geoJsonData) {
+        return null;
+    }
+
 
     // ============================================================
     // FEATURE STYLE
@@ -19,39 +62,95 @@ export default function ConstituencyLayer({
     const getFeatureStyle = (feature) => {
         const properties = feature.properties ?? {};
 
+        // --------------------------------------------
+        // BOUNDARIES
+        // --------------------------------------------
         if (activeLayer === "boundaries") {
             return {
                 fillColor: "#134074",
                 weight: 1.5,
                 opacity: 1,
-                color: "#ffffff",
+                color: "white",
                 dashArray: "3",
                 fillOpacity: 0.65
             };
         }
 
+        // --------------------------------------------
+        // PARTY CHOROPLETH (Robust Multi-Coalition Match)
+        // --------------------------------------------
         if (activeLayer === "choropleth") {
-            const party = properties.dominant_party;
+            const rawParty = properties.dominant_party ?? properties.party ?? properties.coalition ?? "";
+            const party = rawParty.trim().toUpperCase();
+
+            let fillColor = "#64748b"; // Default slate gray for unmapped labels
+
+            // GPS / Sarawak Parties
+            if (party.includes("GPS") || party.includes("PBB") || party.includes("SUPP") || party.includes("PRS") || party.includes("PDP")) {
+                fillColor = "#ffb703"; // Amber (GPS theme)
+            } 
+            // PH / Component Parties
+            else if (party.includes("PH") || party.includes("PKR") || party.includes("DAP") || party.includes("AMANAH")) {
+                fillColor = "#1d4ed8"; // Strong Blue (PH theme)
+            } 
+            // PN / Component Parties
+            else if (party.includes("PN") || party.includes("PAS") || party.includes("BERSATU") || party.includes("GERAKAN")) {
+                fillColor = "#0ea5e9"; // Sky Blue (PN theme)
+            } 
+            // BN / Component Parties
+            else if (party.includes("BN") || party.includes("UMNO") || party.includes("MCA") || party.includes("MIC")) {
+                fillColor = "#dc2626"; // Red (BN theme)
+            } 
+            // GRS (Gabungan Rakyat Sabah)
+            else if (party.includes("GRS")) {
+                fillColor = "#059669"; // Emerald Green
+            }
+            // Warisan
+            else if (party.includes("WARISAN")) {
+                fillColor = "#7c3aed"; // Purple
+            }
+            // Independent / Bebas
+            else if (party.includes("IND") || party.includes("BEBAS")) {
+                fillColor = "#475569"; // Dark Slate
+            }
 
             return {
-                fillColor: getPartyColor(party),
+                fillColor,
                 weight: 1.5,
                 opacity: 1,
-                color: "#ffffff",
+                color: "white",
                 dashArray: "3",
-                fillOpacity: 0.7
+                fillOpacity: 0.75
             };
         }
 
+        // --------------------------------------------
+        // TURNOUT / VOTER DENSITY HEATMAP
+        // --------------------------------------------
         if (activeLayer === "turnout") {
-            const votes = Number(properties.total_votes ?? 0);
+            const votes = Number(properties.total_votes ?? properties.electorate ?? 0);
+            
+            let fillColor = "#e0f2fe"; 
+            let fillOpacity = 0.4;
+
+            if (votes > 80000) {
+                fillColor = "#0369a1"; 
+                fillOpacity = 0.85;
+            } else if (votes > 50000) {
+                fillColor = "#0284c7";
+                fillOpacity = 0.7;
+            } else if (votes > 25000) {
+                fillColor = "#38bdf8";
+                fillOpacity = 0.55;
+            }
 
             return {
-                fillColor: getTurnoutColor(votes),
+                fillColor,
                 weight: 1.5,
                 opacity: 1,
-                color: "#ffffff",
-                fillOpacity: 0.7
+                color: "white",
+                dashArray: "3",
+                fillOpacity
             };
         }
 
@@ -59,74 +158,58 @@ export default function ConstituencyLayer({
             fillColor: "#134074",
             weight: 1.5,
             opacity: 1,
-            color: "#ffffff",
+            color: "white",
             fillOpacity: 0.65
         };
     };
+
 
     // ============================================================
     // FEATURE EVENTS
     // ============================================================
 
-    const onEachFeature = (feature, layer) => {
-        const properties = feature.properties ?? {};
+    const onEachFeature = (
+        feature,
+        layer
+    ) => {
 
         layer.on({
+
+            click: () => {
+
+                if (onSelectConstituency) {
+
+                    onSelectConstituency(
+                        feature.properties
+                    );
+                }
+            },
+
             mouseover: (event) => {
-                event.target.setStyle({
+
+                const target =
+                    event.target;
+
+                target.setStyle({
                     weight: 3,
                     color: "#ffb703",
-                    fillOpacity: 0.85
+                    fillOpacity: 0.8
                 });
-
-                event.target.bringToFront();
             },
 
             mouseout: (event) => {
-                event.target.setStyle(getFeatureStyle(feature));
-            },
 
-            click: () => {
-                if (onSelectConstituency) {
-                    onSelectConstituency(properties);
-                }
+                const target =
+                    event.target;
+
+                target.setStyle(
+                    getFeatureStyle(feature)
+                );
             }
-        });
 
-        if (properties.seat_name) {
-            layer.bindTooltip(
-                `
-                    <strong>
-                        ${escapeHtml(properties.seat_name)}
-                    </strong>
-                    <br/>
-                    ${escapeHtml(
-                        properties.state_name ?? "Unknown State"
-                    )}
-                `,
-                {
-                    sticky: true
-                }
-            );
-        }
+        });
     };
 
-    // ============================================================
-    // STATES
-    // ============================================================
-
-    if (loading) {
-        return null;
-    }
-
-    if (error) {
-        console.error("Constituency layer error:", error);
-        return null;
-    }
-
-    if (!geoJsonData) {
-        return null;
-    }
 
     // ============================================================
     // RENDER
@@ -134,82 +217,10 @@ export default function ConstituencyLayer({
 
     return (
         <GeoJSON
-            key={`${layerType}-${activeLayer}-${geoJsonData.features?.length || 0}`}
+            key={activeLayer}
             data={geoJsonData}
             style={getFeatureStyle}
             onEachFeature={onEachFeature}
         />
     );
-}
-
-// ============================================================
-// PARTY COLORS
-// ============================================================
-
-function getPartyColor(party) {
-    if (!party) {
-        return "#94a3b8";
-    }
-
-    const normalized = String(party).toUpperCase().trim();
-
-    switch (normalized) {
-        case "GPS":
-            return "#ffb703";
-
-        case "PH":
-            return "#e63946";
-
-        case "PN":
-            return "#2563eb";
-
-        case "BN":
-            return "#facc15";
-
-        case "DAP":
-            return "#dc2626";
-
-        case "PAS":
-            return "#16a34a";
-
-        default:
-            return "#64748b";
-    }
-}
-
-// ============================================================
-// TURNOUT / VOTE COLOR
-// ============================================================
-
-function getTurnoutColor(votes) {
-    if (votes >= 100000) {
-        return "#0b2545";
-    }
-
-    if (votes >= 75000) {
-        return "#134074";
-    }
-
-    if (votes >= 50000) {
-        return "#3b82a6";
-    }
-
-    if (votes >= 25000) {
-        return "#60a5fa";
-    }
-
-    return "#bfdbfe";
-}
-
-// ============================================================
-// HTML SAFETY
-// ============================================================
-
-function escapeHtml(value) {
-    return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
 }
