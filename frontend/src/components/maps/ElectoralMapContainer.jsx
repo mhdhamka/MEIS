@@ -1,73 +1,203 @@
 import { useState } from "react";
+
 import { MapContainer, TileLayer } from "react-leaflet";
+
 import "leaflet/dist/leaflet.css";
 
-import ConstituencyLayer from "./ConstituencyLayer";
-import PollingMarkerCluster from "./PollingMarkerCluster";
-import MapTooltipOverlay from "./MapTooltipOverlay";
-import MapControlsOverlay from "./MapControlsOverlay";
-import MapTelemetryBar from "./MapTelemetryBar";
-import ConstituencyDetailModal from "../modals/ConstituencyDetailModal";
 import { Info } from "lucide-react";
 
+
+
+import ConstituencyLayer from "./ConstituencyLayer";
+
+import ConstituencyMarkerLayer from "./ConstituencyMarkerLayer";
+
+import MapTooltipOverlay from "./MapTooltipOverlay";
+
+import MapControlsOverlay from "./MapControlsOverlay";
+
+import MapTelemetryBar from "./MapTelemetryBar";
+
+import MapLegend from "./MapLegend";
+
+import MapFocusController from "./MapFocusController";
+
+import ConstituencyInspector from "./ConstituencyInspector";
+
+
+
+const MALAYSIA_CENTER = [2.5, 112.5];
+
+
+
 export default function ElectoralMapContainer({
-    activeLayer,
-    layerType = "parliament"
+
+  data,
+
+  metric = "boundaries",
+
+  seatType = "parliament",
+
+  electionId,
+
+  selectedConstituency,
+
+  onSelectConstituency,
+
+  onViewProfile,
+
 }) {
-    const [selectedConstituency, setSelectedConstituency] = useState(null);
-    const centralMalaysia = [2.5, 112.5];
 
-    return (
-        <div className="w-full h-full relative z-10">
+  // Hover preview (MapTooltipOverlay) is intentionally separate from
 
-            {/* Top Center Floating Instruction Banner */}
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none flex flex-col items-center gap-2">
-                <div className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-slate-200/80 flex items-center gap-2 text-xs font-medium text-slate-700 pointer-events-auto">
-                    <Info size={15} className="text-[#134074]" />
-                    <span>Click any constituency boundary or marker to view regional metrics</span>
-                </div>
-            </div>
+  // "selected" (click -> ConstituencyInspector) per the responsibility
 
-            <MapContainer
-                center={centralMalaysia}
-                zoom={6}
-                scrollWheelZoom={true}
-                className="w-full h-full"
-                zoomControl={false}
-            >
-                <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
+  // split: tooltip = quick hover glance, inspector = browsing detail.
 
-                <ConstituencyLayer
-                    activeLayer={activeLayer}
-                    layerType={layerType}
-                    onSelectConstituency={setSelectedConstituency}
-                />
+  const [hoveredConstituency, setHoveredConstituency] = useState(null);
 
-                <PollingMarkerCluster
-                    layerType={layerType}
-                    intelligenceLayer={activeLayer}
-                    onSelectHub={setSelectedConstituency}
-                />
 
-                {/* Floating Map Controls (Zoom/Compass/Fullscreen) */}
-                <MapControlsOverlay />
 
-                {/* Telemetry Bar placed inside MapContainer to access useMap() context */}
-                <MapTelemetryBar activeLayer={activeLayer} layerType={layerType} />
+  // The feature the map should fly to (set when a search result or
 
-            </MapContainer>
+  // marker is chosen). Kept separate from `selectedConstituency`
 
-            <MapTooltipOverlay activeConstituency={selectedConstituency} />
+  // (which is just the plain properties object the inspector reads).
 
-            {selectedConstituency && (
-                <ConstituencyDetailModal
-                    constituency={selectedConstituency}
-                    onClose={() => setSelectedConstituency(null)}
-                />
-            )}
-        </div>
+  const [focusFeature, setFocusFeature] = useState(null);
+
+
+
+  const handleSelect = (properties) => {
+
+    onSelectConstituency?.(properties);
+
+
+
+    const matchingFeature = data?.features?.find(
+
+      (feature) => feature.properties?.seat_code === properties?.seat_code
+
     );
+
+    if (matchingFeature) {
+
+      setFocusFeature(matchingFeature);
+
+    }
+
+  };
+
+
+
+  return (
+
+    <div className="h-full grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-3">
+
+      {/* MAP PANE */}
+
+      <div className="relative min-h-0 rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+
+        {/* Top Center Floating Instruction Banner */}
+
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none flex flex-col items-center gap-2">
+
+          <div className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-slate-200/80 flex items-center gap-2 text-xs font-medium text-slate-700 pointer-events-auto">
+
+            <Info size={15} className="text-[#134074]" />
+
+            <span>Click any constituency boundary or marker to view regional metrics</span>
+
+          </div>
+
+        </div>
+
+
+
+        <MapContainer
+
+          center={MALAYSIA_CENTER}
+
+          zoom={6}
+
+          scrollWheelZoom
+
+          className="w-full h-full"
+
+          zoomControl={false}
+
+        >
+
+          <TileLayer
+
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+
+          />
+
+
+
+          <ConstituencyLayer
+
+            data={data}
+
+            metric={metric}
+
+            onSelectConstituency={handleSelect}
+
+            onHoverConstituency={setHoveredConstituency}
+
+          />
+
+
+
+          <ConstituencyMarkerLayer data={data} onSelectConstituency={handleSelect} />
+
+
+
+          <MapFocusController feature={focusFeature} />
+
+
+
+          <MapControlsOverlay />
+
+
+
+          {/* Needs to live inside MapContainer to access useMap() */}
+
+          <MapTelemetryBar
+
+            activeLayer={metric}
+
+            layerType={seatType}
+
+            visibleFeatures={data?.features?.length ?? 0}
+
+            electionId={electionId}
+
+          />
+
+        </MapContainer>
+
+
+
+        <MapLegend metric={metric} />
+
+
+
+        <MapTooltipOverlay activeConstituency={hoveredConstituency} />
+
+      </div>
+
+
+
+      {/* INSPECTOR PANE */}
+
+      <ConstituencyInspector constituency={selectedConstituency} onViewProfile={onViewProfile} />
+
+    </div>
+
+  );
+
 }

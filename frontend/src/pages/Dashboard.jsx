@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom"; // Recommended for SPA navigation
+import { Link } from "react-router-dom";
 import {
   Building2,
   Users,
@@ -19,6 +19,12 @@ import {
   getStateSeatDistribution,
   getElectionTrends,
 } from "../services/api";
+
+import LoadingState from "../components/states/LoadingState";
+import ErrorState from "../components/states/ErrorState";
+import EmptyState from "../components/states/EmptyState";
+import SkeletonCard from "../components/states/SkeletonCard";
+import SkeletonTable from "../components/states/SkeletonTable";
 
 export default function Dashboard() {
   // ============================================================
@@ -101,46 +107,38 @@ export default function Dashboard() {
   };
 
   // ============================================================
-  // LOADING
+  // LOADING STATE
   // ============================================================
 
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto mb-4 h-8 w-8 rounded-full border-2 border-slate-200 border-t-[#134074] animate-spin"></div>
-          <p className="text-sm font-semibold text-slate-700">
-            Loading electoral intelligence...
-          </p>
-          <p className="text-xs text-slate-400 mt-1">
-            Fetching live analytics from MEIS API
-          </p>
+      <div className="space-y-6">
+        <LoadingState
+          title="Loading electoral intelligence"
+          message="Fetching live analytics and telemetry from MEIS API."
+        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
         </div>
+        <SkeletonTable rows={4} columns={4} />
       </div>
     );
   }
 
   // ============================================================
-  // ERROR
+  // ERROR STATE
   // ============================================================
 
   if (error) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="max-w-md text-center">
-          <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-red-50 flex items-center justify-center">
-            <Activity size={22} className="text-red-600" />
-          </div>
-          <h2 className="text-lg font-bold text-slate-900">
-            Unable to load dashboard
-          </h2>
-          <p className="text-sm text-slate-600 mt-2">{error}</p>
-          <p className="text-xs text-slate-400 mt-3">
-            Make sure the FastAPI backend is running on
-            <span className="font-mono ml-1">http://localhost:8000</span>
-          </p>
-        </div>
-      </div>
+      <ErrorState
+        title="Unable to load dashboard"
+        message={`${error} (Make sure the FastAPI backend is running on http://localhost:8000)`}
+        onRetry={() => window.location.reload()}
+      />
     );
   }
 
@@ -247,7 +245,10 @@ export default function Dashboard() {
 
           <div className="space-y-4">
             {partySeats.length === 0 ? (
-              <p className="text-sm text-slate-500">No party seat data available.</p>
+              <EmptyState
+                title="No party data"
+                message="No party seat distribution data available for this selection."
+              />
             ) : (
               partySeats.map((party, index) => {
                 const percentage =
@@ -351,7 +352,10 @@ export default function Dashboard() {
         </div>
 
         {stateSeats.length === 0 ? (
-          <p className="text-sm text-slate-500">No regional state seat metrics available.</p>
+          <EmptyState
+            title="No state metrics"
+            message="No regional state seat metrics are available at this time."
+          />
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {stateSeats.map((state, index) => (
@@ -378,7 +382,10 @@ export default function Dashboard() {
         </div>
 
         {trends.length === 0 ? (
-          <p className="text-sm text-slate-500">No historical election records found.</p>
+          <EmptyState
+            title="No historical records"
+            message="No historical election records found in the database."
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left">
