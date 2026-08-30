@@ -62,6 +62,20 @@ export function getResults() {
 }
 
 // ============================================================
+// MAP RESULTS (per-seat winner analytics, no geometry)
+// ============================================================
+
+export function getMapResults({ electionId, seatType, state } = {}) {
+  const params = new URLSearchParams();
+  if (electionId != null) params.append("election_id", electionId);
+  if (seatType) params.append("seat_type", seatType);
+  if (state) params.append("state", state);
+
+  const query = params.toString() ? `?${params.toString()}` : "";
+  return request(`/map/results${query}`);
+}
+
+// ============================================================
 // ANALYTICS & ADVANCED QUERIES
 // ============================================================
 
@@ -123,6 +137,7 @@ export const api = {
   getElections,
   getSeats,
   getResults,
+  getMapResults,
   getCandidates,
   getParties,
 };

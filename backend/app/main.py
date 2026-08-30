@@ -8,6 +8,7 @@ from app.routes.seats import router as seats_router
 from app.routes.results import router as results_router
 from app.routes.candidates import router as candidates_router
 from app.routes.analytics import router as analytics_router
+from app.routes.map_results import router as map_router
 
 
 # ============================================================
@@ -81,6 +82,12 @@ app.include_router(
     analytics_router,
     prefix="/api/v1/analytics",
     tags=["Analytics"],
+)
+
+app.include_router(
+    map_router,
+    prefix="/api/v1/map",
+    tags=["Map"],
 )
 
 
