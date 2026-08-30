@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom"; // Recommended for SPA navigation
 import {
   Building2,
   Users,
@@ -73,7 +74,31 @@ export default function Dashboard() {
     }
 
     loadDashboard();
-  }, []);
+  }, [electionId]);
+
+  // ============================================================
+  // PARTY COLOR HELPER (Synchronized with Map & Modals)
+  // ============================================================
+
+  const getPartyBarColor = (partyName) => {
+    const p = (partyName ?? "").trim().toUpperCase();
+    if (p.includes("GPS") || p.includes("PBB") || p.includes("SUPP") || p.includes("PRS") || p.includes("PDP")) {
+      return "#ffb703"; // Amber
+    }
+    if (p.includes("PH") || p.includes("PKR") || p.includes("DAP") || p.includes("AMANAH")) {
+      return "#1d4ed8"; // Blue
+    }
+    if (p.includes("PN") || p.includes("PAS") || p.includes("BERSATU") || p.includes("GERAKAN")) {
+      return "#0ea5e9"; // Sky Blue
+    }
+    if (p.includes("BN") || p.includes("UMNO") || p.includes("MCA") || p.includes("MIC")) {
+      return "#dc2626"; // Red
+    }
+    if (p.includes("GRS")) {
+      return "#059669"; // Emerald
+    }
+    return "#134074"; // Default brand dark blue
+  };
 
   // ============================================================
   // LOADING
@@ -228,6 +253,7 @@ export default function Dashboard() {
                 const percentage =
                   party.percentage ??
                   (totalSeats > 0 ? (party.seats / totalSeats) * 100 : 0);
+                const barColor = getPartyBarColor(party.party_name);
 
                 return (
                   <div key={party.party_id ?? index}>
@@ -237,9 +263,10 @@ export default function Dashboard() {
                     </div>
                     <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
                       <div
-                        className="bg-[#134074] h-full rounded-full transition-all duration-700"
+                        className="h-full rounded-full transition-all duration-700"
                         style={{
                           width: `${Math.min(Number(percentage) || 0, 100)}%`,
+                          backgroundColor: barColor,
                         }}
                       />
                     </div>
@@ -323,15 +350,19 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-          {stateSeats.map((state, index) => (
-            <div key={state.state_id ?? index} className="p-3 rounded-md bg-slate-50 border border-slate-100">
-              <p className="text-xs font-semibold text-slate-700 truncate">{state.state_name}</p>
-              <p className="text-xl font-bold text-[#134074] mt-1">{state.seats}</p>
-              <p className="text-[10px] text-slate-400 uppercase">seats</p>
-            </div>
-          ))}
-        </div>
+        {stateSeats.length === 0 ? (
+          <p className="text-sm text-slate-500">No regional state seat metrics available.</p>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {stateSeats.map((state, index) => (
+              <div key={state.state_id ?? index} className="p-3 rounded-md bg-slate-50 border border-slate-100">
+                <p className="text-xs font-semibold text-slate-700 truncate">{state.state_name}</p>
+                <p className="text-xl font-bold text-[#134074] mt-1">{state.seats}</p>
+                <p className="text-[10px] text-slate-400 uppercase">seats</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* HISTORICAL ELECTION TRENDS */}
@@ -346,30 +377,34 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-slate-200">
-                <th className="px-3 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">Election</th>
-                <th className="px-3 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">Year</th>
-                <th className="px-3 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">Seats</th>
-                <th className="px-3 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 text-right">Votes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {trends.map((trend, index) => (
-                <tr key={trend.election_id ?? index} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                  <td className="px-3 py-3 text-sm font-semibold text-slate-800">{trend.election_name}</td>
-                  <td className="px-3 py-3 text-sm text-slate-600">{trend.election_year}</td>
-                  <td className="px-3 py-3 text-sm text-slate-600">{trend.seats}</td>
-                  <td className="px-3 py-3 text-sm font-medium text-slate-700 text-right">
-                    {Number(trend.votes ?? 0).toLocaleString()}
-                  </td>
+        {trends.length === 0 ? (
+          <p className="text-sm text-slate-500">No historical election records found.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-slate-200">
+                  <th className="px-3 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">Election</th>
+                  <th className="px-3 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">Year</th>
+                  <th className="px-3 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">Seats</th>
+                  <th className="px-3 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 text-right">Votes</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {trends.map((trend, index) => (
+                  <tr key={trend.election_id ?? index} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                    <td className="px-3 py-3 text-sm font-semibold text-slate-800">{trend.election_name}</td>
+                    <td className="px-3 py-3 text-sm text-slate-600">{trend.election_year}</td>
+                    <td className="px-3 py-3 text-sm text-slate-600">{trend.seats}</td>
+                    <td className="px-3 py-3 text-sm font-medium text-slate-700 text-right">
+                      {Number(trend.votes ?? 0).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* GEOSPATIAL MODULE */}
@@ -383,12 +418,12 @@ export default function Dashboard() {
             Explore constituency boundaries, electoral results, and geographic distributions across Malaysia.
           </p>
         </div>
-        <a
-          href="/map"
-          className="px-4 py-2 bg-[#ffb703] text-slate-900 font-semibold text-xs rounded-md shadow-xs hover:bg-[#faedcd] transition-colors whitespace-nowrap"
+        <Link
+          to="/map"
+          className="px-4 py-2 bg-[#ffb703] text-slate-900 font-semibold text-xs rounded-md shadow-xs hover:bg-[#faedcd] transition-colors whitespace-nowrap cursor-pointer"
         >
           Launch Electoral Map →
-        </a>
+        </Link>
       </div>
     </div>
   );
