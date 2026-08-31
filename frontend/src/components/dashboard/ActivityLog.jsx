@@ -1,4 +1,4 @@
-import { Terminal, Activity, ArrowUpRight } from "lucide-react";
+import { Terminal, Activity } from "lucide-react";
 
 export default function ActivityLog() {
   const logs = [
