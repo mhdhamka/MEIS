@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { MapPinned, ArrowUpRight, Copy, Check, TrendingUp, Award, Users, Activity } from "lucide-react";
+import { MapPinned, ArrowUpRight, Copy, Check, TrendingUp, Award } from "lucide-react";
 
-function StatRow({ label, value, icon: Icon, highlight = false, colorClass = "text-slate-100" }) {
+function StatRow({ label, value, icon: Icon = false, colorClass = "text-slate-100" }) {
   return (
     <div className="group flex items-center justify-between gap-3 py-2 px-3 rounded-xl hover:bg-white/[0.06] transition-all duration-200 border border-transparent hover:border-white/10">
       <div className="flex items-center gap-2">
