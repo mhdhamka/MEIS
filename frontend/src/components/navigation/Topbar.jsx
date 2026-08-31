@@ -39,7 +39,7 @@ export default function Topbar() {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#134074]">
-                Malaysia
+                MY
               </span>
               <span className="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">
                 Live Feed
@@ -89,10 +89,7 @@ export default function Topbar() {
 
           {/* SYSTEM API STATUS BADGE */}
           <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 shadow-2xs">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </span>
+            
             <span className="text-xs font-bold text-slate-700 tracking-tight">
               API Online
             </span>
