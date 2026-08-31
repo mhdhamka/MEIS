@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { normalizeSeatCode, normalizeStateName } from "../utils/electoral";
+import { normalizeSeatCode } from "../utils/electoral";
 
 const DEFAULT_API_BASE_URL = "http://localhost:8000/api/v1";
 
@@ -8,6 +8,11 @@ const DUN_GEOJSON = "/geojson/malaysia.dun.geojson";
 
 // ============================================================
 // SESSION-LEVEL CACHE
+//
+// Keyed by layerType ("parliament" | "dun"). Once the merged
+// FeatureCollection for a layer has been built, it is reused
+// for the rest of the session — switching the `metric` prop
+// elsewhere in the app must NEVER trigger a refetch here.
 // ============================================================
 
 const mergedDataCache = new Map();
@@ -48,103 +53,81 @@ export function useGeoSpatialData(layerType = "parliament", customApiBaseUrl) {
         const isDun = layerType === "dun";
         const geoJsonUrl = isDun ? DUN_GEOJSON : PARLIAMENT_GEOJSON;
 
-        // 1. Fetch GeoJSON independently first (guarantees map boundaries load)
-        const geoResponse = await fetch(geoJsonUrl, { signal: controller.signal });
+        // De-dupe concurrent requests for the same layer (e.g. StrictMode
+        // double-invoke, or two components mounting the hook at once).
+        let requestPromise = inFlightRequests.get(layerType);
+
+        if (!requestPromise) {
+          requestPromise = Promise.all([
+            fetch(geoJsonUrl, { signal: controller.signal }),
+            fetch(`${API_BASE_URL}/seats`, { signal: controller.signal }),
+          ]);
+          inFlightRequests.set(layerType, requestPromise);
+        }
+
+        const [geoResponse, seatsResponse] = await requestPromise;
+
         if (!geoResponse.ok) {
           throw new Error(`Failed to load electoral GeoJSON: ${geoResponse.status}`);
         }
-        const geoJson = await geoResponse.json();
+        if (!seatsResponse.ok) {
+          throw new Error(`Failed to load electoral seats: ${seatsResponse.status}`);
+        }
 
+        const geoJson = await geoResponse.json();
+        const seatsJson = await seatsResponse.json();
+
+        const seats = seatsJson.data ?? seatsJson;
+
+        if (!Array.isArray(seats)) {
+          throw new Error("Seats API did not return an array");
+        }
         if (!geoJson || geoJson.type !== "FeatureCollection" || !Array.isArray(geoJson.features)) {
           throw new Error("Invalid electoral GeoJSON format");
         }
 
-        // 2. Safely fetch backend analytics with de-duplication and fallbacks
-        let requestPromise = inFlightRequests.get(layerType);
-
-        if (!requestPromise) {
-          requestPromise = (async () => {
-            try {
-              // Create a short timeout fetch helper to prevent hanging pending states
-              const fetchWithTimeout = async (url) => {
-                const timeoutId = setTimeout(() => controller.abort(), 8000);
-                try {
-                  const res = await fetch(url, { signal: controller.signal });
-                  clearTimeout(timeoutId);
-                  return res;
-                } catch (e) {
-                  clearTimeout(timeoutId);
-                  throw e;
-                }
-              };
-
-              const [seatsRes, performanceRes] = await Promise.all([
-                fetchWithTimeout(`${API_BASE_URL}/seats`).catch(() => null),
-                fetchWithTimeout(`${API_BASE_URL}/analytics/state-performance`).catch(() => null),
-              ]);
-
-              const seatsJson = seatsRes && seatsRes.ok ? await seatsRes.json() : [];
-              const performanceJson = performanceRes && performanceRes.ok ? await performanceRes.json() : [];
-
-              return {
-                seats: seatsJson.data ?? seatsJson,
-                performance: performanceJson.data ?? performanceJson,
-              };
-            } catch (apiErr) {
-              console.warn("Backend analytics unreachable, rendering map with geometry only:", apiErr);
-              return { seats: [], performance: [] };
-            }
-          })();
-
-          inFlightRequests.set(layerType, requestPromise);
-        }
-
-        const { seats, performance } = await requestPromise;
-
         // --------------------------------------------------
         // SEAT LOOKUP (P.xxx vs N.xxx kept distinct)
+        //
+        // normalizeSeatCode strips punctuation but keeps the leading
+        // P/N letter, so the startsWith check below must too.
         // --------------------------------------------------
 
         const seatLookup = new Map();
-        if (Array.isArray(seats)) {
-          seats.forEach((seat) => {
-            const possibleCodes = [
-              seat.seat_code,
-              seat.code_parlimen,
-              seat.code_dun,
-              seat.parlimen,
-              seat.dun,
-              seat.code,
-            ];
 
-            for (const code of possibleCodes) {
-              const normalized = normalizeSeatCode(code);
-              if (!normalized) continue;
+        seats.forEach((seat) => {
+          const possibleCodes = [
+            seat.seat_code,
+            seat.code_parlimen,
+            seat.code_dun,
+            seat.parlimen,
+            seat.dun,
+            seat.code,
+          ];
 
-              if (isDun && !normalized.startsWith("N.")) continue;
-              if (!isDun && !normalized.startsWith("P.")) continue;
+          for (const code of possibleCodes) {
+            const normalized = normalizeSeatCode(code);
+            if (!normalized) continue;
 
-              seatLookup.set(normalized, seat);
-            }
-          });
-        }
+            if (isDun && !normalized.startsWith("N")) continue;
+            if (!isDun && !normalized.startsWith("P")) continue;
 
-        // --------------------------------------------------
-        // STATE ANALYTICS LOOKUP
-        // --------------------------------------------------
-
-        const stateLookup = new Map();
-        if (Array.isArray(performance)) {
-          performance.forEach((state) => {
-            const stateName = state.state_name ?? state.state ?? state.name;
-            const normalized = normalizeStateName(stateName);
-            if (!normalized) return;
-            stateLookup.set(normalized, state);
-          });
-        }
+            seatLookup.set(normalized, seat);
+          }
+        });
 
         // --------------------------------------------------
-        // MERGE GEOJSON WITH DATABASE ANALYTICS
+        // MERGE GEOJSON (source of truth for geometry/state)
+        // WITH DATABASE ANALYTICS
+        //
+        // NOTE: we deliberately do NOT stamp state-level aggregates
+        // (e.g. analytics/state-performance's total_votes) onto every
+        // seat here — that produced identical, misleading numbers for
+        // every constituency in a state. Real per-seat winner/votes/
+        // vote-share/margin/turnout/candidate-count come later from
+        // useMapResults + mergeElectionResults, keyed by seat_code.
+        // Until that merge runs, these fields stay null/"N/A" so the
+        // UI honestly shows "no data yet" instead of a fake number.
         // --------------------------------------------------
 
         const mergedFeatures = geoJson.features.map((feature) => {
@@ -159,11 +142,6 @@ export function useGeoSpatialData(layerType = "parliament", customApiBaseUrl) {
             geoProperties.state ??
             geoProperties.STATE ??
             "Unknown State";
-
-          const statePerformance = stateLookup.get(normalizeStateName(stateName));
-
-          const totalVotes = Number(statePerformance?.total_votes ?? 0);
-          const dominantParty = statePerformance?.dominant_party ?? "N/A";
 
           return {
             ...feature,
@@ -185,8 +163,16 @@ export function useGeoSpatialData(layerType = "parliament", customApiBaseUrl) {
 
               seat_type: isDun ? "State Assembly" : "Parliamentary",
 
-              total_votes: totalVotes,
-              dominant_party: dominantParty,
+              // Placeholders — filled in per-seat by mergeElectionResults
+              // once useMapResults resolves for the selected election.
+              total_votes: null,
+              dominant_party: null,
+              winner_name: null,
+              winner_votes: null,
+              vote_share: null,
+              majority: null,
+              turnout: null,
+              candidate_count: null,
 
               layer_type: isDun ? "dun" : "parliament",
             },
@@ -211,7 +197,7 @@ export function useGeoSpatialData(layerType = "parliament", customApiBaseUrl) {
 
         if (err.name === "AbortError") return;
 
-        console.error("GeoSpatial processing error:", err);
+        console.error("GeoSpatial API error:", err);
 
         if (isMounted) {
           setError(err.message ?? "Failed to load geospatial data");
@@ -224,7 +210,11 @@ export function useGeoSpatialData(layerType = "parliament", customApiBaseUrl) {
 
     return () => {
       isMounted = false;
+      controller.abort();
     };
+    // NOTE: `metric` is intentionally NOT a dependency anywhere this hook
+    // is called — changing the visualization metric only changes styling,
+    // never triggers a refetch.
   }, [layerType, API_BASE_URL]);
 
   return { data, loading, error };

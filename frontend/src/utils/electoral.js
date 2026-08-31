@@ -14,14 +14,19 @@
 // NORMALIZATION
 // ------------------------------------------------------------
 
-// IMPORTANT: never strip the "P." / "N." prefix.
-// P.001 (Parliament) and N.001 (DUN) are different entities.
+// IMPORTANT: never strip the "P" / "N" prefix LETTER.
+// P001 (Parliament) and N001 (DUN) are different entities.
+//
+// Strips every non-alphanumeric character (dots, dashes, underscores,
+// spaces) rather than just some of them. GeoJSON boundary files and
+// hand-maintained MySQL seed data frequently disagree on punctuation
+// for the exact same seat ("P.194" vs "P194" vs "P-194"), and any gap
+// here silently breaks every join between geometry and analytics.
 export function normalizeSeatCode(code) {
   if (code === undefined || code === null) return "";
   return String(code)
     .toUpperCase()
-    .replace(/[-_]/g, "")
-    .replace(/\s+/g, "")
+    .replace(/[^A-Z0-9]/g, "")
     .trim();
 }
 
@@ -233,6 +238,13 @@ export function getHoverStyle() {
   return { weight: 3, color: "#ffb703", fillOpacity: 0.85 };
 }
 
+// Deliberately a different color from the hover style (amber) so a
+// user can tell "this is what I'm pointing at" apart from "this is
+// what I clicked" even when they're the same polygon.
+export function getSelectedStyle() {
+  return { weight: 4, color: "#22d3ee", dashArray: null, fillOpacity: 0.9 };
+}
+
 // ------------------------------------------------------------
 // ELECTION RESULTS MERGE
 //
@@ -248,30 +260,61 @@ export function mergeElectionResults(data, resultsBySeat) {
     return data;
   }
 
+  let matchedCount = 0;
+
+  const features = data.features.map((feature) => {
+    const key = normalizeSeatCode(feature.properties?.seat_code);
+    const result = resultsBySeat.get(key);
+
+    if (!result) {
+      return feature;
+    }
+
+    matchedCount += 1;
+
+    return {
+      ...feature,
+      properties: {
+        ...feature.properties,
+        winner_name: result.winner_name ?? feature.properties.winner_name,
+        dominant_party: result.party_name ?? feature.properties.dominant_party,
+        winner_votes: result.votes ?? feature.properties.winner_votes,
+        vote_share: result.vote_share ?? feature.properties.vote_share,
+        majority: result.margin ?? feature.properties.majority,
+        turnout: result.turnout ?? feature.properties.turnout,
+        candidate_count:
+          result.candidate_count ?? feature.properties.candidate_count,
+        // Real per-seat votes cast, from the election_results merge —
+        // NOT the state-wide aggregate useGeoSpatialData used to stamp
+        // onto every seat (see git history: that was the bug where
+        // every seat in a state showed the identical vote total).
+        total_votes: result.total_votes ?? feature.properties.total_votes,
+      },
+    };
+  });
+
+  // If the API returned results but literally none of them matched any
+  // feature, that's almost always a seat_code convention mismatch
+  // between the GeoJSON source and the database (e.g. one side using
+  // "P.194", the other "P194"). Surface it loudly instead of leaving
+  // every field silently stuck on "N/A".
+  if (matchedCount === 0) {
+    console.warn(
+      "[mergeElectionResults] 0 matches between",
+      data.features.length,
+      "GeoJSON features and",
+      resultsBySeat.size,
+      "API result rows. Sample GeoJSON seat_code:",
+      data.features[0]?.properties?.seat_code,
+      "-> normalized:",
+      normalizeSeatCode(data.features[0]?.properties?.seat_code),
+      "| Sample API seat_code (normalized):",
+      [...resultsBySeat.keys()][0]
+    );
+  }
+
   return {
     ...data,
-    features: data.features.map((feature) => {
-      const key = normalizeSeatCode(feature.properties?.seat_code);
-      const result = resultsBySeat.get(key);
-
-      if (!result) {
-        return feature;
-      }
-
-      return {
-        ...feature,
-        properties: {
-          ...feature.properties,
-          winner_name: result.winner_name ?? feature.properties.winner_name,
-          dominant_party: result.party_name ?? feature.properties.dominant_party,
-          winner_votes: result.votes ?? feature.properties.winner_votes,
-          vote_share: result.vote_share ?? feature.properties.vote_share,
-          majority: result.margin ?? feature.properties.majority,
-          turnout: result.turnout ?? feature.properties.turnout,
-          candidate_count:
-            result.candidate_count ?? feature.properties.candidate_count,
-        },
-      };
-    }),
+    features,
   };
 }

@@ -1,5 +1,10 @@
 import { GeoJSON } from "react-leaflet";
-import { getFeatureStyle, getHoverStyle } from "../../utils/electoral";
+import {
+  getFeatureStyle,
+  getHoverStyle,
+  getSelectedStyle,
+  normalizeSeatCode,
+} from "../../utils/electoral";
 
 // ============================================================
 // ConstituencyLayer
@@ -14,6 +19,7 @@ import { getFeatureStyle, getHoverStyle } from "../../utils/electoral";
 export default function ConstituencyLayer({
   data,
   metric = "boundaries",
+  selectedSeatCode,
   onSelectConstituency,
   onHoverConstituency,
 }) {
@@ -21,7 +27,15 @@ export default function ConstituencyLayer({
     return null;
   }
 
-  const styleForFeature = (feature) => getFeatureStyle(feature, metric);
+  const isSelected = (feature) =>
+    !!selectedSeatCode &&
+    normalizeSeatCode(feature.properties?.seat_code) === selectedSeatCode;
+
+  // The "resting" style for a feature: its normal metric color, unless
+  // it's the currently-selected constituency, in which case the
+  // selection highlight persists even after the mouse leaves it.
+  const styleForFeature = (feature) =>
+    isSelected(feature) ? getSelectedStyle() : getFeatureStyle(feature, metric);
 
   const onEachFeature = (feature, layer) => {
     layer.on({
@@ -30,7 +44,9 @@ export default function ConstituencyLayer({
       },
 
       mouseover: (event) => {
-        event.target.setStyle(getHoverStyle());
+        if (!isSelected(feature)) {
+          event.target.setStyle(getHoverStyle());
+        }
         onHoverConstituency?.(feature.properties);
       },
 
@@ -43,9 +59,11 @@ export default function ConstituencyLayer({
 
   return (
     <GeoJSON
-      // Re-mounting on metric change guarantees every polygon repaints
-      // cleanly even mid-hover, without needing to walk the layer group.
-      key={metric}
+      // Re-mounting on metric OR selection change guarantees every
+      // polygon repaints cleanly (including dropping the highlight off
+      // whatever was previously selected) without manually walking the
+      // layer group.
+      key={`${metric}-${selectedSeatCode ?? "none"}`}
       data={data}
       style={styleForFeature}
       onEachFeature={onEachFeature}
