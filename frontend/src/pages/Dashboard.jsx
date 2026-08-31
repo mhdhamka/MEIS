@@ -1,17 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  Building2,
-  Users,
-  Vote,
-  MapPin,
-  Activity,
-  Database,
-  Server,
-  TrendingUp,
-  ShieldCheck,
-  BarChart3,
-} from "lucide-react";
+import { Building2, Users, Vote, MapPin, TrendingUp } from "lucide-react";
 
 import {
   getElectionSummary,
@@ -26,11 +14,14 @@ import EmptyState from "../components/states/EmptyState";
 import SkeletonCard from "../components/states/SkeletonCard";
 import SkeletonTable from "../components/states/SkeletonTable";
 
-export default function Dashboard() {
-  // ============================================================
-  // STATE
-  // ============================================================
+// Modularized Dashboard Components
+import TelemetryHeader from "../components/dashboard/TelemetryHeader";
+import KPICard from "../components/dashboard/KPICard";
+import QuickActions from "../components/dashboard/QuickActions";
+import ActivityLog from "../components/dashboard/ActivityLog";
+import IntelligenceAlerts from "../components/dashboard/IntelligenceAlerts";
 
+export default function Dashboard() {
   const [summary, setSummary] = useState(null);
   const [partySeats, setPartySeats] = useState([]);
   const [stateSeats, setStateSeats] = useState([]);
@@ -39,15 +30,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ============================================================
-  // CURRENT ELECTION
-  // ============================================================
-
   const electionId = 125;
-
-  // ============================================================
-  // LOAD DASHBOARD DATA
-  // ============================================================
 
   useEffect(() => {
     async function loadDashboard() {
@@ -82,41 +65,30 @@ export default function Dashboard() {
     loadDashboard();
   }, [electionId]);
 
-  // ============================================================
-  // PARTY COLOR HELPER (Synchronized with Map & Modals)
-  // ============================================================
-
   const getPartyBarColor = (partyName) => {
     const p = (partyName ?? "").trim().toUpperCase();
     if (p.includes("GPS") || p.includes("PBB") || p.includes("SUPP") || p.includes("PRS") || p.includes("PDP")) {
-      return "#ffb703"; // Amber
+      return "#ffb703";
     }
     if (p.includes("PH") || p.includes("PKR") || p.includes("DAP") || p.includes("AMANAH")) {
-      return "#1d4ed8"; // Blue
+      return "#1d4ed8";
     }
     if (p.includes("PN") || p.includes("PAS") || p.includes("BERSATU") || p.includes("GERAKAN")) {
-      return "#0ea5e9"; // Sky Blue
+      return "#0ea5e9";
     }
     if (p.includes("BN") || p.includes("UMNO") || p.includes("MCA") || p.includes("MIC")) {
-      return "#dc2626"; // Red
+      return "#dc2626";
     }
     if (p.includes("GRS")) {
-      return "#059669"; // Emerald
+      return "#059669";
     }
-    return "#134074"; // Default brand dark blue
+    return "#134074";
   };
-
-  // ============================================================
-  // LOADING STATE
-  // ============================================================
 
   if (loading) {
     return (
       <div className="space-y-6">
-        <LoadingState
-          title="Loading electoral intelligence"
-          message="Fetching live analytics and telemetry from MEIS API."
-        />
+        <LoadingState title="Loading electoral intelligence" message="Fetching live analytics and telemetry from MEIS API." />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <SkeletonCard />
           <SkeletonCard />
@@ -128,10 +100,6 @@ export default function Dashboard() {
     );
   }
 
-  // ============================================================
-  // ERROR STATE
-  // ============================================================
-
   if (error) {
     return (
       <ErrorState
@@ -142,90 +110,36 @@ export default function Dashboard() {
     );
   }
 
-  // ============================================================
-  // DERIVED VALUES
-  // ============================================================
-
   const totalStates = stateSeats.length;
   const totalParties = summary?.total_parties ?? partySeats.length;
   const totalSeats = summary?.total_seats ?? 0;
   const totalCandidates = summary?.total_candidates ?? 0;
 
-  // ============================================================
-  // DASHBOARD RENDER
-  // ============================================================
-
   return (
     <div className="space-y-6">
-      {/* PAGE TITLE */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between pb-4 border-b border-slate-200">
-        <div>
-          <span className="inline-block px-2.5 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-[#134074] uppercase tracking-wider mb-1">
-            System Overview
-          </span>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            Electoral Intelligence Dashboard
-          </h1>
-          <p className="text-sm text-slate-600 mt-0.5">
-            Real-time electoral analytics, historical results, party performance, and constituency distribution.
-          </p>
-        </div>
-      </div>
+      {/* 1. SYSTEM TELEMETRY HEADER */}
+      <TelemetryHeader />
 
-      {/* KPI CARDS */}
+      {/* 2. NATIONAL KPI CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* STATES */}
-        <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-xs border-t-4 border-t-[#134074]">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              States & Territories
-            </span>
-            <MapPin size={18} className="text-[#134074]" />
-          </div>
-          <p className="text-3xl font-extrabold text-slate-900 mt-2">{totalStates}</p>
-          <p className="text-xs text-slate-500 mt-1">Jurisdictions represented</p>
-        </div>
-
-        {/* PARTIES */}
-        <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-xs border-t-4 border-t-[#134074]">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Registered Parties
-            </span>
-            <Vote size={18} className="text-[#134074]" />
-          </div>
-          <p className="text-3xl font-extrabold text-slate-900 mt-2">{totalParties}</p>
-          <p className="text-xs text-slate-500 mt-1">Parties recorded in election data</p>
-        </div>
-
-        {/* SEATS */}
-        <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-xs border-t-4 border-t-[#134074]">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Total Seats
-            </span>
-            <Building2 size={18} className="text-[#134074]" />
-          </div>
-          <p className="text-3xl font-extrabold text-slate-900 mt-2">{totalSeats.toLocaleString()}</p>
-          <p className="text-xs text-slate-500 mt-1">Seats in selected election</p>
-        </div>
-
-        {/* CANDIDATES */}
-        <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-xs border-t-4 border-t-[#134074]">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Candidates Logged
-            </span>
-            <Users size={18} className="text-[#134074]" />
-          </div>
-          <p className="text-3xl font-extrabold text-slate-900 mt-2">{totalCandidates.toLocaleString()}</p>
-          <p className="text-xs text-slate-500 mt-1">Candidates in selected election</p>
-        </div>
+        <KPICard title="States & Territories" value={totalStates} subtitle="Jurisdictions represented" icon={MapPin} />
+        <KPICard title="Registered Parties" value={totalParties} subtitle="Parties recorded in election data" icon={Vote} />
+        <KPICard title="Total Seats" value={totalSeats.toLocaleString()} subtitle="Seats in selected election" icon={Building2} />
+        <KPICard title="Candidates Logged" value={totalCandidates.toLocaleString()} subtitle="Candidates in selected election" icon={Users} />
       </div>
 
-      {/* PARTY DISTRIBUTION + TELEMETRY */}
+      {/* 3. QUICK NAVIGATION SHORTCUTS */}
+      <QuickActions />
+
+      {/* 4. ALERTS & TELEMETRY LOGS GRID */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <IntelligenceAlerts />
+        <ActivityLog />
+      </div>
+
+      {/* 5. PARTY DISTRIBUTION + STATE DISTRIBUTION */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* PARTY SEAT DISTRIBUTION */}
+        {/* Party Distribution */}
         <div className="lg:col-span-2 bg-white p-6 rounded-lg border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between mb-5">
             <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 flex items-center gap-2">
@@ -237,15 +151,10 @@ export default function Dashboard() {
 
           <div className="space-y-4">
             {partySeats.length === 0 ? (
-              <EmptyState
-                title="No party data"
-                message="No party seat distribution data available for this selection."
-              />
+              <EmptyState title="No party data" message="No party seat distribution data available for this selection." />
             ) : (
               partySeats.map((party, index) => {
-                const percentage =
-                  party.percentage ??
-                  (totalSeats > 0 ? (party.seats / totalSeats) * 100 : 0);
+                const percentage = party.percentage ?? (totalSeats > 0 ? (party.seats / totalSeats) * 100 : 0);
                 const barColor = getPartyBarColor(party.party_name);
 
                 return (
@@ -270,98 +179,30 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* SYSTEM TELEMETRY */}
+        {/* State Summary Panel */}
         <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-xs flex flex-col justify-between">
           <div>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 mb-4 flex items-center gap-2">
-              <Activity size={16} className="text-emerald-600" />
-              System Telemetry
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 mb-2 flex items-center gap-2">
+              <MapPin size={16} className="text-[#134074]" />
+              Jurisdiction Overview
             </h3>
-
-            <div className="space-y-3.5">
-              <div className="flex items-center justify-between p-2.5 rounded bg-slate-50 border border-slate-100">
-                <div className="flex items-center gap-2.5">
-                  <Server size={15} className="text-slate-500" />
-                  <span className="text-xs font-medium text-slate-700">FastAPI REST Core</span>
+            <p className="text-xs text-slate-500 mb-4">Regional state seat metrics count</p>
+            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+              {stateSeats.map((state, idx) => (
+                <div key={idx} className="flex items-center justify-between p-2 rounded bg-slate-50 border border-slate-100 text-xs">
+                  <span className="font-medium text-slate-700">{state.state_name}</span>
+                  <span className="font-bold text-[#134074]">{state.seats} seats</span>
                 </div>
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                  OPERATIONAL
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-2.5 rounded bg-slate-50 border border-slate-100">
-                <div className="flex items-center gap-2.5">
-                  <Database size={15} className="text-slate-500" />
-                  <span className="text-xs font-medium text-slate-700">MySQL Database</span>
-                </div>
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                  CONNECTED
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-2.5 rounded bg-slate-50 border border-slate-100">
-                <div className="flex items-center gap-2.5">
-                  <ShieldCheck size={15} className="text-slate-500" />
-                  <span className="text-xs font-medium text-slate-700">ETL Pipeline</span>
-                </div>
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                  READY
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-2.5 rounded bg-slate-50 border border-slate-100">
-                <div className="flex items-center gap-2.5">
-                  <BarChart3 size={15} className="text-slate-500" />
-                  <span className="text-xs font-medium text-slate-700">Analytics Engine</span>
-                </div>
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                  READY
-                </span>
-              </div>
+              ))}
             </div>
           </div>
-
-          <div className="mt-6 pt-4 border-t border-slate-100 text-center">
-            <p className="text-[11px] text-slate-400">MEIS Intelligence Core v1.0.0</p>
+          <div className="mt-4 pt-3 border-t border-slate-100 text-center">
+            <span className="text-[11px] text-slate-400">MEIS Command Center Core v1.0</span>
           </div>
         </div>
       </div>
 
-      {/* STATE DISTRIBUTION */}
-      <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-xs">
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 flex items-center gap-2">
-              <MapPin size={16} className="text-[#134074]" />
-              Seats by State
-            </h3>
-            <p className="text-xs text-slate-500 mt-1">Geographic distribution for the selected election</p>
-          </div>
-        </div>
-
-        {stateSeats.length === 0 ? (
-          <EmptyState
-            title="No state metrics"
-            message="No regional state seat metrics are available at this time."
-          />
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            {stateSeats.map((state, index) => (
-              <div key={state.state_id ?? index} className="p-3 rounded-md bg-slate-50 border border-slate-100">
-                <p className="text-xs font-semibold text-slate-700 truncate">{state.state_name}</p>
-                <p className="text-xl font-bold text-[#134074] mt-1">{state.seats}</p>
-                <p className="text-[10px] text-slate-400 uppercase">seats</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* HISTORICAL ELECTION TRENDS */}
+      {/* 6. HISTORICAL ELECTION TRENDS TABLE */}
       <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-xs">
         <div className="flex items-center justify-between mb-5">
           <div>
@@ -374,10 +215,7 @@ export default function Dashboard() {
         </div>
 
         {trends.length === 0 ? (
-          <EmptyState
-            title="No historical records"
-            message="No historical election records found in the database."
-          />
+          <EmptyState title="No historical records" message="No historical election records found in the database." />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left">
@@ -404,25 +242,6 @@ export default function Dashboard() {
             </table>
           </div>
         )}
-      </div>
-
-      {/* GEOSPATIAL MODULE */}
-      <div className="bg-[#0b2545] text-white p-6 rounded-lg shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
-        <div>
-          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ffb703]">
-            Geospatial Intelligence
-          </span>
-          <h4 className="text-lg font-bold mt-0.5">Interactive Constituency Mapping Module</h4>
-          <p className="text-xs text-slate-300 mt-1">
-            Explore constituency boundaries, electoral results, and geographic distributions across Malaysia.
-          </p>
-        </div>
-        <Link
-          to="/map"
-          className="px-4 py-2 bg-[#ffb703] text-slate-900 font-semibold text-xs rounded-md shadow-xs hover:bg-[#faedcd] transition-colors whitespace-nowrap cursor-pointer"
-        >
-          Launch Electoral Map →
-        </Link>
       </div>
     </div>
   );
