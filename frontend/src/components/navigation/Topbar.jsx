@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Search, Bell, Sparkles } from "lucide-react";
+import { Search, Bell } from "lucide-react";
 import GlobalSearch from "./GlobalSearch";
 
 export default function Topbar() {
@@ -33,9 +33,6 @@ export default function Topbar() {
         
         {/* Workspace Title & Context */}
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center">
-            <Sparkles size={16} className="text-[#134074]" />
-          </div>
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#134074]">
