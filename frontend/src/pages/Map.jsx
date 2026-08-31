@@ -66,7 +66,7 @@ export default function MapPage() {
 
   const handleViewProfile = (seatCode) => {
     if (!seatCode) return;
-    // Swap this for your router's navigate() once one is wired in —
+    // Swap this for router's navigate() once one is wired in —
     // kept as a plain navigation so this page has no router dependency.
     window.location.assign(`/constituencies/${encodeURIComponent(seatCode)}`);
   };
