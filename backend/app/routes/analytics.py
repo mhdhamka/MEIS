@@ -122,7 +122,7 @@ def get_seat_counts(
             JOIN seats s
                 ON er.seat_id = s.seat_id
             WHERE
-                er.result_status = 'WINNER'
+                er.result_status IN ('won', 'won_uncontested', 'WINNER')
                 AND (%s IS NULL OR er.election_id = %s)
                 AND (%s IS NULL OR s.seat_type = %s)
             GROUP BY p.party_id, p.party_name
@@ -164,7 +164,7 @@ def get_state_performance(
                 COUNT(DISTINCT s.seat_id) AS total_seats,
                 COUNT(
                     DISTINCT CASE
-                        WHEN er.result_status = 'WINNER'
+                        WHEN er.result_status IN ('won', 'won_uncontested', 'WINNER')
                         THEN er.seat_id
                     END
                 ) AS seats_with_results,
@@ -240,7 +240,7 @@ def get_winning_margins(
             LEFT JOIN parties p
                 ON er.party_id = p.party_id
             WHERE
-                er.result_status = 'WINNER'
+                er.result_status IN ('won', 'won_uncontested', 'WINNER')
                 AND (%s IS NULL OR er.election_id = %s)
                 AND (%s IS NULL OR s.seat_type = %s)
             ORDER BY winning_margin DESC

@@ -83,28 +83,35 @@ export function getOverviewAnalytics() {
   return request("/analytics/overview");
 }
 
-export function getElectionSummary() {
-  return request("/analytics/overview");
+export function getElectionSummary(electionId = null) {
+  const query = electionId ? `?election_id=${electionId}` : "";
+  return request(`/analytics/overview${query}`);
 }
 
-export function getStatePerformance() {
-  return request("/analytics/state-performance");
+export function getStatePerformance(electionId = null) {
+  const query = electionId ? `?election_id=${electionId}` : "";
+  return request(`/analytics/state-performance${query}`);
 }
 
-export function getPartyPerformance() {
-  return request("/analytics/party-performance");
+export function getPartyPerformance(electionId = null, seatType = null) {
+  const params = new URLSearchParams();
+  if (electionId) params.append("election_id", electionId);
+  if (seatType) params.append("seat_type", seatType);
+  const query = params.toString() ? `?${params.toString()}` : "";
+  return request(`/analytics/party-performance${query}`);
 }
 
 export function getWinningMargins() {
   return request("/analytics/winning-margins");
 }
 
+// FIXED: Now points to the correct seat-counts endpoint[cite: 18]
 export function getPartySeatDistribution(electionId = null, seatType = null) {
   const params = new URLSearchParams();
   if (electionId) params.append("election_id", electionId);
   if (seatType) params.append("seat_type", seatType);
   const query = params.toString() ? `?${params.toString()}` : "";
-  return request(`/analytics/party-performance${query}`);
+  return request(`/analytics/seat-counts${query}`);
 }
 
 export function getStateSeatDistribution(electionId = null) {

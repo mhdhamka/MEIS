@@ -49,16 +49,38 @@ export default function Sidebar() {
       {/* Official Header Branding */}
       <div className="flex h-20 items-center border-b border-slate-800/80 px-6 bg-slate-900/40">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center shadow-inner">
-            <span className="inline-block h-3 w-3 rounded-sm bg-amber-400 shadow-sm shadow-amber-400/50"></span>
+          {/* Malaysian Flag Icon Wrapper */}
+          <div className="w-9 h-9 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center shadow-inner overflow-hidden relative">
+            <svg viewBox="0 0 56 36" className="w-7 h-5 rounded shadow-sm object-cover">
+              {/* Red and White Stripes (14 stripes) */}
+              <rect width="56" height="36" fill="#CC0000" />
+              <rect y="2.57" width="56" height="2.57" fill="#FFFFFF" />
+              <rect y="7.71" width="56" height="2.57" fill="#FFFFFF" />
+              <rect y="12.86" width="56" height="2.57" fill="#FFFFFF" />
+              <rect y="18.00" width="56" height="2.57" fill="#FFFFFF" />
+              <rect y="23.14" width="56" height="2.57" fill="#FFFFFF" />
+              <rect y="28.28" width="56" height="2.57" fill="#FFFFFF" />
+              <rect y="33.42" width="56" height="2.57" fill="#FFFFFF" />
+              
+              {/* Blue Canton */}
+              <rect width="28" height="20.5" fill="#000066" />
+              
+              {/* Crescent */}
+              <circle cx="11.5" cy="10.25" r="6" fill="#FFCC00" />
+              <circle cx="12.5" cy="10.25" r="5" fill="#000066" />
+              
+              {/* 14-Pointed Star */}
+              <path
+                d="M12.5 6.25 L13.2 8.2 L15.3 8.2 L13.6 9.4 L14.2 11.4 L12.5 10.2 L10.8 11.4 L11.4 9.4 L9.7 8.2 L11.8 8.2 Z"
+                fill="#FFCC00"
+                transform="scale(0.7) translate(5, 5)"
+              />
+            </svg>
           </div>
           <div>
             <h1 className="text-base font-extrabold tracking-wider text-white flex items-center gap-1.5">
               MEIS
             </h1>
-            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400">
-              Electoral Intelligence
-            </p>
           </div>
         </div>
       </div>
