@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Search, Bell, Activity, Sparkles } from "lucide-react";
+import { Search, Bell, Sparkles } from "lucide-react";
 import GlobalSearch from "./GlobalSearch";
 
 export default function Topbar() {

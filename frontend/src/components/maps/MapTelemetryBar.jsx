@@ -3,7 +3,6 @@ import { useMap } from "react-leaflet";
 import { Globe, Layers, Navigation, Database } from "lucide-react";
 
 export default function MapTelemetryBar({
-  activeLayer,
   layerType,
   visibleFeatures,
   electionId,

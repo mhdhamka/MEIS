@@ -33,10 +33,8 @@ export function useMapResults(electionId, seatType = "parliament", state = null)
   useEffect(() => {
     let isMounted = true;
 
+    // If already cached, skip fetching entirely
     if (resultsCache.has(cacheKey)) {
-      setResultsBySeat(resultsCache.get(cacheKey));
-      setLoading(false);
-      setError(null);
       return () => {
         isMounted = false;
       };

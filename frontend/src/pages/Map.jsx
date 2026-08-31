@@ -49,7 +49,7 @@ export default function MapPage() {
   // useGeoSpatialData above is completely untouched, so the
   // GeoJSON never refetches when the election filter changes.
   // --------------------------------------------------------
-  const { resultsBySeat, error: resultsError } = useMapResults(
+  const { resultsBySeat } = useMapResults(
     electionId,
     seatType,
     stateFilter !== "all" ? stateFilter : null
