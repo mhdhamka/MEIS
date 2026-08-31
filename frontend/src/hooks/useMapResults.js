@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from "react";
 import { getMapResults } from "../services/api";
 import { normalizeSeatCode } from "../utils/electoral";
@@ -33,7 +34,7 @@ export function useMapResults(electionId, seatType = "parliament", state = null)
   useEffect(() => {
     let isMounted = true;
 
-    // If already cached, skip fetching entirely
+    // Cache hit: skip fetching entirely
     if (resultsCache.has(cacheKey)) {
       return () => {
         isMounted = false;
