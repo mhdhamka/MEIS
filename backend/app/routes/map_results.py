@@ -96,7 +96,15 @@ def get_map_results(
                     WHERE
                         er3.election_id = er.election_id
                         AND er3.seat_id = er.seat_id
-                ) AS candidate_count
+                ) AS candidate_count,
+
+                (
+                    SELECT SUM(er4.total_votes)
+                    FROM election_results er4
+                    WHERE
+                        er4.election_id = er.election_id
+                        AND er4.seat_id = er.seat_id
+                ) AS total_votes
 
             FROM election_results er
 

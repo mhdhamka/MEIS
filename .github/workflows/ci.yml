@@ -15,7 +15,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./frontend # Change this if your folder name is different
+        working-directory: ./frontend 
 
     steps:
       - name: Checkout Repository
@@ -45,7 +45,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./backend # Change this if your folder name is different
+        working-directory: ./backend 
 
     steps:
       - name: Checkout Repository
