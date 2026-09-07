@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MapPinned, ArrowUpRight, Copy, Check, TrendingUp, Award } from "lucide-react";
+import { MapPinned, ArrowUpRight, Copy, Check, TrendingUp } from "lucide-react";
 
 function StatRow({ label, value, icon: Icon = false, colorClass = "text-slate-100" }) {
   return (
@@ -130,7 +130,6 @@ export default function ConstituencyInspector({ constituency, onViewProfile, his
             {/* WINNER & METRICS CARD */}
             <div className="bg-slate-900/60 rounded-2xl p-2.5 border border-slate-800/80 shadow-inner backdrop-blur-md">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 pt-2 pb-1.5 flex items-center gap-1.5">
-                <Award size={12} className="text-amber-400" />
                 Winner & Core Analytics
               </p>
               <div className="divide-y divide-slate-800/50">

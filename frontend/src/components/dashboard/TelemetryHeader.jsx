@@ -23,15 +23,12 @@ export default function TelemetryHeader() {
         {/* Title Group */}
         <div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center justify-center p-1 rounded-md bg-blue-50 text-[#134074]">
-              <Cpu size={14} />
-            </span>
             <span className="text-[10px] font-extrabold uppercase tracking-[0.25em] text-blue-600">
               Malaysia Electoral Intelligence System
             </span>
           </div>
           <h1 className="text-2xl font-black tracking-tight text-slate-900 mt-1">
-            Electoral Intelligence Dashboard
+            Dashboard
           </h1>
         </div>
 
