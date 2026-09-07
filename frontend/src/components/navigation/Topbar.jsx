@@ -43,7 +43,7 @@ export default function Topbar() {
               </span>
             </div>
             <h2 className="text-sm font-extrabold text-slate-900 tracking-tight">
-              MEIS Workspace
+              Workspace
             </h2>
           </div>
         </div>
