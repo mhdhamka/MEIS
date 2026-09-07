@@ -50,7 +50,8 @@ export function getStates() {
 }
 
 export async function getElections() {
-    return request("/elections/");
+    const response = await request("/elections/");
+    return normalizeData(response);
 }
 
 export async function getElection(electionId) {
@@ -106,6 +107,11 @@ export function getOverviewAnalytics() {
     return request("/analytics/overview");
 }
 
+export async function getHistoricalTrends() {
+    const response = await request("/analytics/historical-trends");
+    return normalizeData(response);
+}
+
 export function getElectionSummary(electionId = null) {
     const query = electionId ? `?election_id=${electionId}` : "";
     return request(`/analytics/overview${query}`);
@@ -151,6 +157,21 @@ export function getElectionTrends(seatId = null) {
 }
 
 // ============================================================
+// INTELLIGENCE ALERTS & PIPELINE LOGS (SYSTEM TELEMETRY)
+// ============================================================
+
+export async function getIntelligenceAlerts(electionId = null) {
+    const query = electionId != null ? `?election_id=${electionId}` : "";
+    const response = await request(`/analytics/intelligence-alerts${query}`);
+    return normalizeData(response);
+}
+
+export async function getPipelineLogs(limit = 5) {
+    const response = await request(`/analytics/pipeline-logs?limit=${limit}`);
+    return normalizeData(response);
+}
+
+// ============================================================
 // COMPATIBILITY ALIASES (Requested by hooks/components)
 // ============================================================
 
@@ -183,6 +204,7 @@ export const api = {
     getStateSeatDistribution,
     getElectionStatePerformance,
     getElectionTrends,
+    getHistoricalTrends,
     getOverviewAnalytics,
     getStatePerformance,
     getPartyPerformance,
@@ -194,4 +216,6 @@ export const api = {
     getMapResults,
     getCandidates,
     getParties,
+    getIntelligenceAlerts,
+    getPipelineLogs,
 };
