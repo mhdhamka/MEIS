@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Server, Database, ShieldCheck, RefreshCw, Cpu } from "lucide-react";
+import { Server, Database, ShieldCheck, RefreshCw } from "lucide-react";
 
 export default function TelemetryHeader() {
   const [isRefreshing, setIsRefreshing] = useState(false);
