@@ -1,8 +1,6 @@
 import {
     TrendingUp,
-    TrendingDown,
-    MapPin,
-    Vote
+    MapPin
 } from "lucide-react";
 
 

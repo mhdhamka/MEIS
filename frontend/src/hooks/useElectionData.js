@@ -54,20 +54,15 @@ export function useElectionData(
 
     const loadElections =
         useCallback(async () => {
-            try {
-                const response =
-                    await getElections();
+            const response =
+                await getElections();
 
-                const data =
-                    extractArray(response);
+            const data =
+                extractArray(response);
 
-                setElections(data);
+            setElections(data);
 
-                return data;
-
-            } catch (err) {
-                throw err;
-            }
+            return data;
         }, []);
 
 
@@ -175,8 +170,39 @@ export function useElectionData(
 
 
     useEffect(() => {
-        reload();
-    }, [reload]);
+        let isMounted = true;
+
+        async function initData() {
+            try {
+                setLoading(true);
+                setError(null);
+
+                const electionsData = await loadElections();
+                
+                // Determine active election to fetch if not passed down cleanly yet
+                const activeId = selectedElectionId || electionsData?.[0]?.election_id;
+
+                if (activeId) {
+                    await loadElectionData(activeId);
+                }
+            } catch (err) {
+                console.error("Election initialization error:", err);
+                if (isMounted) {
+                    setError(err.message || "Failed to load election data.");
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        }
+
+        initData();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [selectedElectionId, loadElections, loadElectionData]);
 
 
     // ============================================================
@@ -293,14 +319,11 @@ export function useElectionData(
     return {
         elections,
         selectedElection,
-
         results,
         partyPerformance,
         seatCounts,
         statePerformance,
-
         summary,
-
         loading,
         error,
 

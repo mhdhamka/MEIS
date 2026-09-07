@@ -1,5 +1,4 @@
 import {
-    useEffect,
     useMemo,
     useState
 } from "react";
@@ -92,42 +91,6 @@ export default function ElectionsPage() {
     } = useElectionData(
         selectedElectionId
     );
-
-
-    // ============================================================
-    // DEFAULT SELECT LATEST ELECTION
-    // ============================================================
-
-    useEffect(() => {
-
-        if (
-            !selectedElectionId &&
-            elections.length
-        ) {
-            const latest =
-                [...elections]
-                    .sort(
-                        (a, b) =>
-                            Number(
-                                b.election_year
-                            ) -
-                            Number(
-                                a.election_year
-                            )
-                    )[0];
-
-
-            if (latest) {
-                setSelectedElectionId(
-                    latest.election_id
-                );
-            }
-        }
-
-    }, [
-        elections,
-        selectedElectionId
-    ]);
 
 
     // ============================================================
@@ -225,12 +188,6 @@ export default function ElectionsPage() {
             type,
             year
         ]);
-
-
-    // Reset pagination on filter or search change
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [search, type, year]);
 
 
     // ============================================================
@@ -410,19 +367,22 @@ export default function ElectionsPage() {
             <div className="p-4 rounded-2xl bg-white/60 backdrop-blur-xl border border-white/40 shadow-lg shadow-slate-200/40">
                 <ElectionFilters
                     search={search}
-                    onSearchChange={
-                        setSearch
-                    }
+                    onSearchChange={(val) => {
+                        setSearch(val);
+                        setCurrentPage(1);
+                    }}
 
                     type={type}
-                    onTypeChange={
-                        setType
-                    }
+                    onTypeChange={(val) => {
+                        setType(val);
+                        setCurrentPage(1);
+                    }}
 
                     year={year}
-                    onYearChange={
-                        setYear
-                    }
+                    onYearChange={(val) => {
+                        setYear(val);
+                        setCurrentPage(1);
+                    }}
 
                     years={years}
 
@@ -430,6 +390,7 @@ export default function ElectionsPage() {
                         setSearch("");
                         setType("all");
                         setYear("all");
+                        setCurrentPage(1);
                     }}
                 />
             </div>
@@ -484,6 +445,7 @@ export default function ElectionsPage() {
                                 setSearch("");
                                 setType("all");
                                 setYear("all");
+                                setCurrentPage(1);
                             }}
                         />
                     </div>
@@ -565,7 +527,6 @@ export default function ElectionsPage() {
                                             },
                                             (_, i) => i + 1
                                         ).map((page) => {
-                                            // Optional: display pages near current or all if small count
                                             const isNearCurrent =
                                                 Math.abs(page - currentPage) <= 1 ||
                                                 page === 1 ||

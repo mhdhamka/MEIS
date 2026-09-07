@@ -1,7 +1,6 @@
 import {
     Search,
     RotateCcw,
-    Filter
 } from "lucide-react";
 
 

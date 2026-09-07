@@ -1,5 +1,4 @@
 import {
-    useEffect,
     useMemo,
     useState
 } from "react";
@@ -8,7 +7,6 @@ import {
     TrendingUp,
     TrendingDown,
     Minus,
-    ArrowRightLeft,
     Loader2,
     Search
 } from "lucide-react";
@@ -30,13 +28,11 @@ export default function ElectionComparison({
     const [
         electionB,
         setElectionB
-    ] = useState(
+    ] = useState(() => (
         selectedElectionId
-            ? String(
-                  selectedElectionId
-              )
+            ? String(selectedElectionId)
             : ""
-    );
+    ));
 
     const [
         comparisonData,
@@ -50,19 +46,6 @@ export default function ElectionComparison({
     const [filterQuery, setFilterQuery] = useState("");
     const [sortMode, setSortMode] = useState("absolute"); // 'absolute' | 'gain' | 'loss' | 'name'
     const [hoveredRow, setHoveredRow] = useState(null);
-
-
-    useEffect(() => {
-
-        if (selectedElectionId) {
-            setElectionB(
-                String(
-                    selectedElectionId
-                )
-            );
-        }
-
-    }, [selectedElectionId]);
 
 
     async function compare() {
