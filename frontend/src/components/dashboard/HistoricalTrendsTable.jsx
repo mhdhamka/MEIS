@@ -1,23 +1,28 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import EmptyState from "../states/EmptyState";
 
 export default function HistoricalTrendsTable({ trends = [] }) {
   const [currentPage, setCurrentPage] = useState(1);
+  const [prevTrendsLength, setPrevTrendsLength] = useState(trends.length);
   const ITEMS_PER_PAGE = 10;
 
-  // Reset to page 1 if trends data length changes or shrinks
-  useEffect(() => {
+  // Safe alternative to resetting page in useEffect: adjust during render or state tracking
+  if (trends.length !== prevTrendsLength) {
+    setPrevTrendsLength(trends.length);
     setCurrentPage(1);
-  }, [trends.length]);
+  }
 
   // Pagination calculation
   const totalPages = Math.ceil(trends.length / ITEMS_PER_PAGE);
 
+  // Ensure current page doesn't exceed total pages if trends shrink
+  const safeCurrentPage = Math.min(currentPage, totalPages || 1);
+
   const paginatedTrends = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const start = (safeCurrentPage - 1) * ITEMS_PER_PAGE;
     return trends.slice(start, start + ITEMS_PER_PAGE);
-  }, [trends, currentPage]);
+  }, [trends, safeCurrentPage]);
 
   return (
     <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-white/80 via-white/50 to-white/30 backdrop-blur-2xl border border-white/60 shadow-2xl shadow-blue-900/10 text-slate-900 transition-all duration-300">
@@ -101,11 +106,11 @@ export default function HistoricalTrendsTable({ trends = [] }) {
               <p className="text-xs font-semibold text-slate-500">
                 Showing{" "}
                 <span className="font-bold text-slate-800">
-                  {(currentPage - 1) * ITEMS_PER_PAGE + 1}
+                  {(safeCurrentPage - 1) * ITEMS_PER_PAGE + 1}
                 </span>{" "}
                 to{" "}
                 <span className="font-bold text-slate-800">
-                  {Math.min(currentPage * ITEMS_PER_PAGE, trends.length)}
+                  {Math.min(safeCurrentPage * ITEMS_PER_PAGE, trends.length)}
                 </span>{" "}
                 of <span className="font-bold text-slate-800">{trends.length}</span> entries
               </p>
@@ -113,7 +118,7 @@ export default function HistoricalTrendsTable({ trends = [] }) {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                  disabled={currentPage === 1}
+                  disabled={safeCurrentPage === 1}
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-white/70 backdrop-blur-xl border border-white/80 text-slate-700 shadow-sm transition-all hover:bg-white hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
                 >
                   <ChevronLeft size={14} />
@@ -121,12 +126,12 @@ export default function HistoricalTrendsTable({ trends = [] }) {
                 </button>
 
                 <div className="px-3 py-1.5 rounded-xl bg-white/50 backdrop-blur-md border border-white/60 text-xs font-black text-[#134074] shadow-sm">
-                  {currentPage} / {totalPages}
+                  {safeCurrentPage} / {totalPages}
                 </div>
 
                 <button
                   onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                  disabled={currentPage === totalPages}
+                  disabled={safeCurrentPage === totalPages}
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-white/70 backdrop-blur-xl border border-white/80 text-slate-700 shadow-sm transition-all hover:bg-white hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
                 >
                   Next

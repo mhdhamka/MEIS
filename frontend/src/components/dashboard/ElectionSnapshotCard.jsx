@@ -1,10 +1,7 @@
-import { useState } from "react";
 import { ShieldAlert, CheckCircle2, Calendar, Users, Vote, Landmark } from "lucide-react";
 import EmptyState from "../states/EmptyState";
 
 export default function ElectionSnapshotCard({ snapshot = null, getPartyBarColor }) {
-  const [activeTab, setActiveTab] = useState("results");
-
   if (!snapshot) {
     return (
       <div className="lg:col-span-2 p-6 rounded-3xl bg-white/70 backdrop-blur-2xl border border-white/60 shadow-xl">
@@ -84,6 +81,7 @@ export default function ElectionSnapshotCard({ snapshot = null, getPartyBarColor
         <span className="text-[10px] uppercase font-extrabold tracking-widest text-slate-400 block mb-1">
           Winning Party Seat Allocation
         </span>
+
         {(snapshot.parties || [
           { name: "PH", seats: 82 },
           { name: "PN", seats: 74 },

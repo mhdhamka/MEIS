@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
-import EmptyState from "../states/EmptyState"; 
+
 export default function JurisdictionOverview({ stateSeats = [] }) {
   const [selectedState, setSelectedState] = useState(null);
   const [hoveredIndex, setHoveredIndex] = useState(null);

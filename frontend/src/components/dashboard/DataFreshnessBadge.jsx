@@ -1,4 +1,4 @@
-import { Clock, RefreshCw, CheckCircle2 } from "lucide-react";
+import { Clock } from "lucide-react";
 
 export default function DataFreshnessBadge({ lastSync = "3m ago", status = "Operational", version = "GE-15 + State" }) {
   return (

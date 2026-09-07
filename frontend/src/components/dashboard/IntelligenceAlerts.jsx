@@ -26,7 +26,6 @@ export default function IntelligenceAlerts({ alerts = [] }) {
           {alerts && alerts.length > 0 ? (
             alerts.map((alert, index) => {
               const alertType = alert.type || "";
-              const isWarning = alertType === "warning" || alertType === "CRITICAL_MARGIN";
               const isSuccess = alertType === "success" || alertType === "SYNC_OK";
               const isInfo = alertType === "info" || alertType === "DATA_VALIDATION";
 

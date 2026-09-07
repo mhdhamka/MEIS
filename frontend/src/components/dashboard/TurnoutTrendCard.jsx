@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TrendingUp, Activity } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 
 export default function TurnoutTrendCard({ turnoutData = [
   { cycle: "GE-11", turnout: 73.9, year: "2004" },
@@ -42,12 +42,12 @@ export default function TurnoutTrendCard({ turnoutData = [
 
         {/* Visual Bar Matrix / Curve representation */}
         <div className="space-y-3">
-          {turnoutData.map((item, index) => {
+          {turnoutData.map((item) => {
             const isHovered = hoveredPoint?.cycle === item.cycle;
 
             return (
               <div 
-                key={index}
+                key={item.cycle}
                 onMouseEnter={() => setHoveredPoint(item)}
                 onMouseLeave={() => setHoveredPoint(null)}
                 className={`p-3 rounded-xl border transition-all duration-200 cursor-pointer flex items-center justify-between ${

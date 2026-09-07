@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import { ChevronRight, Search, ArrowUpDown } from "lucide-react";
-import EmptyState from "../states/EmptyState";
 
 export default function PartyDistributionCard({ partySeats = [], getPartyBarColor }) {
   const [selectedParty, setSelectedParty] = useState(null);
@@ -42,7 +41,7 @@ export default function PartyDistributionCard({ partySeats = [], getPartyBarColo
     const radius = 40;
     const circumference = 2 * Math.PI * radius;
 
-    return processedParties.map((party, index) => {
+    return processedParties.map((party) => {
       const seats = Number(party.seats ?? party.seat_count ?? 0);
       const percentage = calculatedTotal > 0 ? (seats / calculatedTotal) * 100 : 0;
       const strokeDasharray = `${(percentage / 100) * circumference} ${circumference}`;
@@ -136,7 +135,9 @@ export default function PartyDistributionCard({ partySeats = [], getPartyBarColo
       {/* Body Content */}
       <div className="space-y-3.5">
         {partySeats.length === 0 ? (
-          <EmptyState title="No party data" message="No party seat distribution data available for this selection." />
+          <div className="py-8 text-center text-slate-400 text-xs bg-white/40 rounded-2xl border border-white/60 backdrop-blur-md">
+            No party seat distribution data available for this selection.
+          </div>
         ) : processedParties.length === 0 ? (
           <div className="py-8 text-center text-slate-400 text-xs bg-white/40 rounded-2xl border border-white/60 backdrop-blur-md">
             No matching parties found for &quot;<span className="font-bold text-slate-700">{searchQuery}</span>&quot;.
