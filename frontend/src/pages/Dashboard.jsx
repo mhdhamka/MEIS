@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Building2, Users, Vote, MapPin } from "lucide-react";
 
 import {
   getElectionSummary,
   getStateSeatDistribution,
-  getElectionTrends,
+  getHistoricalTrends,
+  getIntelligenceAlerts,
+  getPipelineLogs,
 } from "../services/api";
 
 import LoadingState from "../components/states/LoadingState";
@@ -21,57 +23,85 @@ import IntelligenceAlerts from "../components/dashboard/IntelligenceAlerts";
 import PartyDistributionCard from "../components/dashboard/PartyDistributionCard";
 import JurisdictionOverview from "../components/dashboard/JurisdictionOverview";
 import HistoricalTrendsTable from "../components/dashboard/HistoricalTrendsTable";
+import ElectionSnapshotCard from "../components/dashboard/ElectionSnapshotCard";
+import TurnoutTrendCard from "../components/dashboard/TurnoutTrendCard";
 
 export default function Dashboard() {
   const [summary, setSummary] = useState(null);
   const [partySeats, setPartySeats] = useState([]);
   const [stateSeats, setStateSeats] = useState([]);
   const [trends, setTrends] = useState([]);
+  const [alerts, setAlerts] = useState([]);
+  const [pipelineLogs, setPipelineLogs] = useState([]);
+
+  // Dynamic election ID state for the dropdown selector
+  const [electionId, setElectionId] = useState(1);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const electionId = 125;
-
+  // Fetch historical trends/elections list once on mount
   useEffect(() => {
-    async function loadDashboard() {
+    async function loadElectionsList() {
       try {
-        setLoading(true);
-        setError(null);
-
-        // Fetch summary, state distributions, trends, and explicitly hit the analytics seat-counts endpoint for actual winning seats
-        const [
-          summaryData,
-          seatCountsRes,
-          stateData,
-          trendData,
-        ] = await Promise.all([
-          getElectionSummary(electionId),
-          fetch(`http://localhost:8000/api/v1/analytics/seat-counts?election_id=${electionId}`).then(res => res.json()),
-          getStateSeatDistribution(electionId),
-          getElectionTrends(),
-        ]);
-
-        // Map backend 'seats_won' key to 'seats' so PartyDistributionCard reads it properly
-        const formattedPartySeats = (seatCountsRes || []).map(item => ({
-          party_name: item.party_name,
-          seats: item.seats_won
-        }));
-
-        setSummary(summaryData);
-        setPartySeats(formattedPartySeats);
-        setStateSeats(stateData);
-        setTrends(trendData);
+        const trendsData = await getHistoricalTrends();
+        setTrends(trendsData);
       } catch (err) {
-        console.error("Dashboard API error:", err);
-        setError(err.message || "Failed to load dashboard data.");
+        console.error("Failed to load historical trends list:", err);
+      }
+    }
+    loadElectionsList();
+  }, []);
+
+  // Encapsulated data loader function so it can be passed to TelemetryHeader for manual refresh
+  const loadDashboardData = useCallback(async () => {
+    try {
+      setError(null);
+
+      const [
+        summaryData,
+        seatCountsRes,
+        stateData,
+        alertsData,
+        logsData,
+      ] = await Promise.all([
+        getElectionSummary(electionId),
+        fetch(`http://localhost:8000/api/v1/analytics/seat-counts?election_id=${electionId}`).then(res => res.json()),
+        getStateSeatDistribution(electionId),
+        getIntelligenceAlerts(electionId),
+        getPipelineLogs(),
+      ]);
+
+      // Map backend 'seats_won' key to 'seats' so PartyDistributionCard reads it properly
+      const formattedPartySeats = (seatCountsRes || []).map(item => ({
+        party_name: item.party_name,
+        seats: item.seats_won
+      }));
+
+      setSummary(summaryData);
+      setPartySeats(formattedPartySeats);
+      setStateSeats(stateData);
+      setAlerts(alertsData);
+      setPipelineLogs(logsData);
+    } catch (err) {
+      console.error("Dashboard API error:", err);
+      setError(err.message || "Failed to load dashboard data.");
+      throw err;
+    }
+  }, [electionId]);
+
+  // Fetch dashboard data whenever electionId changes
+  useEffect(() => {
+    async function initialLoad() {
+      setLoading(true);
+      try {
+        await loadDashboardData();
       } finally {
         setLoading(false);
       }
     }
-
-    loadDashboard();
-  }, [electionId]);
+    initialLoad();
+  }, [electionId, loadDashboardData]);
 
   const getPartyBarColor = (partyName) => {
     const p = (partyName ?? "").trim().toUpperCase();
@@ -123,10 +153,28 @@ export default function Dashboard() {
   const totalSeats = summary?.total_seats ?? 0;
   const totalCandidates = summary?.total_candidates ?? 0;
 
+  // Prepare Snapshot Object data from state/summary
+  const currentSnapshot = summary ? {
+    election_name: summary.election_name ?? "Federal Election Cycle",
+    election_date: summary.election_date ?? "19 Nov 2022",
+    total_seats: totalSeats,
+    total_candidates: totalCandidates,
+    total_votes: summary.total_votes ?? "15.5M",
+    turnout: summary.turnout ?? "74.7%",
+    parties: partySeats.map(p => ({ name: p.party_name, seats: p.seats }))
+  } : null;
+
   return (
     <div className="space-y-6">
-      <TelemetryHeader />
+      {/* Unified Telemetry Header Container */}
+      <TelemetryHeader 
+        electionsList={trends} 
+        electionId={electionId} 
+        setElectionId={setElectionId} 
+        onRefresh={loadDashboardData} 
+      />
 
+      {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard title="States & Territories" value={totalStates} subtitle="Jurisdictions represented" icon={MapPin} />
         <KPICard title="Registered Parties" value={totalParties} subtitle="Parties recorded in election data" icon={Vote} />
@@ -134,22 +182,35 @@ export default function Dashboard() {
         <KPICard title="Candidates Logged" value={totalCandidates.toLocaleString()} subtitle="Candidates in selected election" icon={Users} />
       </div>
 
+      {/* Intelligence Shortcuts */}
       <QuickActions />
 
+      {/* Intelligence Alerts & System Logs */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <IntelligenceAlerts />
-        <ActivityLog />
+        <IntelligenceAlerts alerts={alerts} />
+        <ActivityLog logs={pipelineLogs} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Party Seat Distribution & Current Election Snapshot Section - Equal 50/50 Split */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <PartyDistributionCard 
           partySeats={partySeats} 
           totalSeats={totalSeats} 
           getPartyBarColor={getPartyBarColor} 
         />
+        <ElectionSnapshotCard 
+          snapshot={currentSnapshot} 
+          getPartyBarColor={getPartyBarColor} 
+        />
+      </div>
+
+      {/* Turnout Trend Chart & Jurisdiction Overview Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TurnoutTrendCard />
         <JurisdictionOverview stateSeats={stateSeats} />
       </div>
 
+      {/* Historical Comparative Trends Table */}
       <HistoricalTrendsTable trends={trends} />
     </div>
   );
