@@ -55,7 +55,7 @@ export async function getElections() {
 }
 
 export async function getElection(electionId) {
-    const response = await request(`/elections/${electionId}`);
+    const response = await request(`/elections/${encodeURIComponent(electionId)}`);
     return response?.data ?? response;
 }
 
@@ -63,12 +63,30 @@ export function getSeats() {
     return request("/seats/");
 }
 
-export function getCandidates() {
-    return request("/candidates/");
+export async function getCandidates(params = {}) {
+    const query = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+        if (
+            value !== undefined &&
+            value !== null &&
+            value !== "" &&
+            value !== "all"
+        ) {
+            query.append(key, value);
+        }
+    });
+
+    const queryString = query.toString();
+    const response = await request(
+        `/candidates/${queryString ? `?${queryString}` : ""}`
+    );
+    
+    return response;
 }
 
 export async function getCandidate(id) {
-    const response = await request(`/candidates/${id}`);
+    const response = await request(`/candidates/${encodeURIComponent(id)}`);
     return response?.data ?? response;
 }
 
@@ -77,7 +95,7 @@ export function getParties() {
 }
 
 export async function getParty(id) {
-    const response = await request(`/parties/${id}`);
+    const response = await request(`/parties/${encodeURIComponent(id)}`);
     return response?.data ?? response;
 }
 
@@ -86,7 +104,7 @@ export function getResults() {
 }
 
 // ============================================================
-// CONSTITUENCIES (Updated to include /analytics prefix)
+// CONSTITUENCIES
 // ============================================================
 
 export async function getConstituencies(params = {}) {
@@ -96,7 +114,8 @@ export async function getConstituencies(params = {}) {
         if (
             value !== undefined &&
             value !== null &&
-            value !== ""
+            value !== "" &&
+            value !== "all"
         ) {
             query.append(key, value);
         }
@@ -121,13 +140,12 @@ export async function getConstituencyHistory(seatId) {
     const response = await request(
         `/analytics/constituencies/${encodeURIComponent(seatId)}`
     );
-    // Profile payload contains 'history' directly from the updated backend route
     const profile = response?.data ?? response;
     return profile?.history ?? [];
 }
 
 // ============================================================
-// RESULTS & MAPS
+// RESULTS & MAPS (Updated to include /analytics prefix)
 // ============================================================
 
 export async function getElectionResults(
@@ -135,21 +153,24 @@ export async function getElectionResults(
     limit = 1000,
     offset = 0
 ) {
-    return request(
-        `/results/?election_id=${electionId}&limit=${limit}&offset=${offset}`
-    );
+    if (electionId) {
+        return request(
+            `/analytics/results/${encodeURIComponent(electionId)}?limit=${limit}&offset=${offset}`
+        );
+    }
+    return request(`/analytics/results/?limit=${limit}&offset=${offset}`);
 }
 
 export async function getElectionResult(id) {
-    const response = await request(`/results/${id}`);
+    const response = await request(`/analytics/results/${encodeURIComponent(id)}`);
     return response?.data ?? response;
 }
 
 export function getMapResults({ electionId, seatType, state } = {}) {
     const params = new URLSearchParams();
-    if (electionId != null) params.append("election_id", electionId);
-    if (seatType) params.append("seat_type", seatType);
-    if (state) params.append("state", state);
+    if (electionId != null && electionId !== "all") params.append("election_id", electionId);
+    if (seatType && seatType !== "all") params.append("seat_type", seatType);
+    if (state && state !== "all") params.append("state", state);
 
     const query = params.toString() ? `?${params.toString()}` : "";
     return request(`/map/results${query}`);
@@ -158,6 +179,10 @@ export function getMapResults({ electionId, seatType, state } = {}) {
 // ============================================================
 // ANALYTICS & ADVANCED QUERIES
 // ============================================================
+
+export function getDashboardAnalytics() {
+    return request("/analytics/dashboard");
+}
 
 export function getOverviewAnalytics() {
     return request("/analytics/overview");
@@ -169,21 +194,21 @@ export async function getHistoricalTrends() {
 }
 
 export async function getElectionSummary(electionId = null) {
-    const query = electionId ? `?election_id=${electionId}` : "";
+    const query = electionId && electionId !== "all" ? `?election_id=${electionId}` : "";
     const response = await request(`/analytics/election-summary${query}`);
     return response?.data ?? response;
 }
 
 export async function getStatePerformance(electionId = null) {
-    const query = electionId ? `?election_id=${electionId}` : "";
+    const query = electionId && electionId !== "all" ? `?election_id=${electionId}` : "";
     const response = await request(`/analytics/state-performance${query}`);
     return normalizeData(response);
 }
 
 export async function getPartyPerformance(electionId = null, seatType = null) {
     const params = new URLSearchParams();
-    if (electionId) params.append("election_id", electionId);
-    if (seatType) params.append("seat_type", seatType);
+    if (electionId && electionId !== "all") params.append("election_id", electionId);
+    if (seatType && seatType !== "all") params.append("seat_type", seatType);
     const query = params.toString() ? `?${params.toString()}` : "";
     const response = await request(`/analytics/party-performance${query}`);
     return normalizeData(response);
@@ -195,21 +220,25 @@ export function getWinningMargins() {
 
 export async function getPartySeatDistribution(electionId = null, seatType = null) {
     const params = new URLSearchParams();
-    if (electionId) params.append("election_id", electionId);
-    if (seatType) params.append("seat_type", seatType);
+    if (electionId && electionId !== "all") params.append("election_id", electionId);
+    if (seatType && seatType !== "all") params.append("seat_type", seatType);
     const query = params.toString() ? `?${params.toString()}` : "";
     const response = await request(`/analytics/seat-counts${query}`);
     return normalizeData(response);
 }
 
 export async function getStateSeatDistribution(electionId = null) {
-    const query = electionId ? `?election_id=${electionId}` : "";
+    const query = electionId && electionId !== "all" ? `?election_id=${electionId}` : "";
     const response = await request(`/analytics/state-performance${query}`);
     return normalizeData(response);
 }
 
+export function getElectionComparison() {
+    return request("/analytics/election-comparison");
+}
+
 export function getElectionTrends(seatId = null) {
-    const query = seatId ? `?seat_id=${seatId}` : "";
+    const query = seatId && seatId !== "all" ? `?seat_id=${seatId}` : "";
     return request(`/analytics/election-comparison${query}`);
 }
 
@@ -230,7 +259,7 @@ export function getSwing() {
 // ============================================================
 
 export async function getIntelligenceAlerts(electionId = null) {
-    const query = electionId != null ? `?election_id=${electionId}` : "";
+    const query = electionId != null && electionId !== "all" ? `?election_id=${electionId}` : "";
     const response = await request(`/analytics/intelligence-alerts${query}`);
     return normalizeData(response);
 }
@@ -241,7 +270,7 @@ export async function getPipelineLogs(limit = 5) {
 }
 
 // ============================================================
-// COMPATIBILITY ALIASES (Requested by hooks/components)
+// COMPATIBILITY ALIASES
 // ============================================================
 
 export async function getElectionPartyPerformance(electionId = null, seatType = null) {
@@ -261,9 +290,7 @@ export async function getElectionStatePerformance(electionId = null) {
 // ============================================================
 
 export const api = {
-    getDashboardAnalytics() {
-        return request("/analytics/overview");
-    },
+    getDashboardAnalytics,
     getElections,
     getElection,
     getElectionResults,
@@ -273,6 +300,7 @@ export const api = {
     getElectionSeatCounts,
     getStateSeatDistribution,
     getElectionStatePerformance,
+    getElectionComparison,
     getElectionTrends,
     getHistoricalTrends,
     getOverviewAnalytics,
@@ -280,6 +308,9 @@ export const api = {
     getPartyPerformance,
     getElectionPartyPerformance,
     getWinningMargins,
+    getMarginDistribution,
+    getTurnout,
+    getSwing,
     getStates,
     getSeats,
     getResults,

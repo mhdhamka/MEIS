@@ -297,7 +297,7 @@ export default function ElectionsPage() {
                         </div>
                         <div>
                             <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-[#134074]">
-                                Interactive Guide
+                                Guide
                             </p>
                             <h2 className="text-sm font-black tracking-tight text-slate-900">
                                 How to use the Election Intelligence feature

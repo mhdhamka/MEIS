@@ -270,7 +270,9 @@ export default function ConstituenciesPage() {
                             <HelpCircle size={18} />
                         </div>
                         <div>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 block">Interactive Guide</span>
+                            <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-[#134074]">
+                                Guide
+                            </p>
                             <h3 className="text-sm font-bold text-slate-900">How to use the Constituency Directory</h3>
                         </div>
                     </div>
