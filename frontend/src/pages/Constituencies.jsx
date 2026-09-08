@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
     Table2,
     LayoutGrid,
@@ -72,7 +72,6 @@ export default function ConstituenciesPage() {
         error,
         selectedConstituency,
         profileLoading,
-        profileError,
         loadProfile,
         closeProfile,
         fetchConstituencies,
@@ -83,9 +82,10 @@ export default function ConstituenciesPage() {
     // LOAD FILTER DATA
     // ============================================================
 
-    useMemo(() => {
+    const isActiveRef = useRef(true);
 
-        let active = true;
+    useEffect(() => {
+        isActiveRef.current = true;
 
         async function loadFilters() {
 
@@ -101,7 +101,7 @@ export default function ConstituenciesPage() {
                     api.getElections(),
                 ]);
 
-                if (!active) {
+                if (!isActiveRef.current) {
                     return;
                 }
 
@@ -137,7 +137,7 @@ export default function ConstituenciesPage() {
         loadFilters();
 
         return () => {
-            active = false;
+            isActiveRef.current = false;
         };
 
     }, []);

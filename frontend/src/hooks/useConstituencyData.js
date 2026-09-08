@@ -134,7 +134,19 @@ export function useConstituencyData(filters = {}) {
     }, [filters]);
 
     useEffect(() => {
-        fetchConstituencies();
+        let isMounted = true;
+
+        async function loadData() {
+            if (isMounted) {
+                await fetchConstituencies();
+            }
+        }
+
+        loadData();
+
+        return () => {
+            isMounted = false;
+        };
     }, [fetchConstituencies]);
 
     // ============================================================
