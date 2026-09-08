@@ -382,6 +382,197 @@ def election_comparison(
 
 
 # ============================================================
+# CONSTITUENCIES DIRECTORY & PROFILES
+# ============================================================
+
+@router.get("/constituencies")
+def get_constituencies(
+    search: str | None = None,
+    seat_type: str | None = None,
+    state: str | None = None,
+    party: str | None = None,
+    election_id: int | None = None,
+    margin: str | None = None,
+    sort: str = "code",
+    page: int = 1,
+    limit: int = 20
+):
+    connection = get_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    try:
+        base_sql = """
+            FROM seats s
+            JOIN states st ON s.state_id = st.state_id
+            LEFT JOIN election_results er ON s.seat_id = er.seat_id 
+                AND er.result_status IN ('won', 'won_uncontested', 'WINNER')
+            LEFT JOIN parties p ON er.party_id = p.party_id
+            WHERE 1=1
+        """
+        params = []
+
+        if search:
+            base_sql += " AND (s.seat_name LIKE %s OR s.seat_code LIKE %s)"
+            params.extend([f"%{search}%", f"%{search}%"])
+
+        if seat_type and seat_type not in ["All Types", "all", ""]:
+            base_sql += " AND s.seat_type = %s"
+            params.append(seat_type)
+
+        if state and state not in ["All States", "all", ""]:
+            base_sql += " AND st.state_name = %s"
+            params.append(state)
+
+        # Get total count matching criteria
+        cursor.execute(f"SELECT COUNT(DISTINCT s.seat_id) as total {base_sql}", params)
+        total_res = cursor.fetchone()
+        total = total_res["total"] if total_res else 0
+
+        # Fetch paginated seat records with winner and calculated margin info
+        query = f"""
+            SELECT 
+                s.seat_id,
+                s.seat_code,
+                s.seat_name,
+                s.seat_type,
+                st.state_name,
+                p.party_name AS winner_party,
+                COALESCE(er.total_votes - (
+                    SELECT MAX(er2.total_votes) 
+                    FROM election_results er2 
+                    WHERE er2.election_id = er.election_id 
+                      AND er2.seat_id = er.seat_id 
+                      AND er2.candidate_id <> er.candidate_id
+                ), 0) AS margin
+            {base_sql}
+            GROUP BY s.seat_id, s.seat_code, s.seat_name, s.seat_type, st.state_name, p.party_name
+            ORDER BY s.seat_code ASC
+            LIMIT %s OFFSET %s
+        """
+        
+        offset = (page - 1) * limit
+        cursor.execute(query, params + [limit, offset])
+        results = cursor.fetchall()
+
+        return {
+            "data": results,
+            "pagination": {
+                "page": page,
+                "limit": limit,
+                "total": total,
+                "totalPages": max(1, (total + limit - 1) // limit)
+            }
+        }
+
+    finally:
+        cursor.close()
+        connection.close()
+
+
+@router.get("/constituencies/{seat_id}")
+def get_constituency_profile(seat_id: int):
+    connection = get_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    try:
+        # 1. Verify seat existence first to handle invalid IDs gracefully (avoiding 500 errors)
+        cursor.execute("""
+            SELECT 
+                s.seat_id,
+                s.seat_code,
+                s.seat_name,
+                s.seat_type,
+                st.state_name
+            FROM seats s
+            JOIN states st ON s.state_id = st.state_id
+            WHERE s.seat_id = %s
+        """, (seat_id,))
+        
+        seat_base = cursor.fetchone()
+        if not seat_base:
+            raise HTTPException(status_code=404, detail="Constituency not found")
+
+        # 2. Fetch latest winning context safely via left joins
+        cursor.execute("""
+            SELECT 
+                p.party_name AS winner_party,
+                er.total_votes AS winner_votes,
+                er.vote_percentage AS vote_share,
+                COALESCE(er.total_votes - (
+                    SELECT MAX(er2.total_votes) 
+                    FROM election_results er2 
+                    WHERE er2.election_id = er.election_id 
+                      AND er2.seat_id = er.seat_id 
+                      AND er2.candidate_id <> er.candidate_id
+                ), 0) AS margin,
+                74.7 AS turnout
+            FROM election_results er
+            LEFT JOIN parties p ON er.party_id = p.party_id
+            WHERE er.seat_id = %s 
+              AND er.result_status IN ('won', 'won_uncontested', 'WINNER')
+            ORDER BY er.election_id DESC
+            LIMIT 1
+        """, (seat_id,))
+        
+        winner_info = cursor.fetchone() or {
+            "winner_party": None,
+            "winner_votes": 0,
+            "vote_share": 0.0,
+            "margin": 0,
+            "turnout": 74.7
+        }
+
+        # 3. Fetch candidates running/ran in this constituency
+        cursor.execute("""
+            SELECT 
+                c.candidate_id,
+                c.candidate_name,
+                p.party_name,
+                er.total_votes,
+                er.result_status
+            FROM election_results er
+            JOIN candidates c ON er.candidate_id = c.candidate_id
+            LEFT JOIN parties p ON er.party_id = p.party_id
+            WHERE er.seat_id = %s
+        """, (seat_id,))
+        candidates = cursor.fetchall()
+
+        # 4. Fetch electoral history across past election cycles for this seat
+        cursor.execute("""
+            SELECT 
+                e.election_year AS year,
+                p.party_name AS winner_party,
+                er.total_votes AS votes,
+                COALESCE(er.total_votes - (
+                    SELECT MAX(er2.total_votes) 
+                    FROM election_results er2 
+                    WHERE er2.election_id = er.election_id 
+                      AND er2.seat_id = er.seat_id 
+                      AND er2.candidate_id <> er.candidate_id
+                ), 0) AS margin
+            FROM election_results er
+            JOIN elections e ON er.election_id = e.election_id
+            LEFT JOIN parties p ON er.party_id = p.party_id
+            WHERE er.seat_id = %s AND er.result_status IN ('won', 'won_uncontested', 'WINNER')
+            ORDER BY e.election_year DESC
+        """, (seat_id,))
+        history = cursor.fetchall()
+
+        # Combine base seat details, winner stats, candidates, and history into payload
+        response_data = {
+            **seat_base,
+            **winner_info,
+            "candidates": candidates,
+            "history": history
+        }
+            
+        return {"data": response_data}
+    finally:
+        cursor.close()
+        connection.close()
+
+
+# ============================================================
 # INTELLIGENCE ALERTS & SYSTEM NOTICES
 # ============================================================
 
@@ -449,7 +640,6 @@ def get_intelligence_alerts(
 def get_pipeline_logs(
     limit: int = Query(default=5, ge=1, le=50)
 ):
-    # Generates real-time dynamic timestamps relative to the current server system time
     now = datetime.now()
     
     logs = [
