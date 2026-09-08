@@ -67,12 +67,63 @@ export function getCandidates() {
     return request("/candidates/");
 }
 
+export async function getCandidate(id) {
+    const response = await request(`/candidates/${id}`);
+    return response?.data ?? response;
+}
+
 export function getParties() {
     return request("/parties/");
 }
 
+export async function getParty(id) {
+    const response = await request(`/parties/${id}`);
+    return response?.data ?? response;
+}
+
 export function getResults() {
     return request("/results/");
+}
+
+// ============================================================
+// CONSTITUENCIES (Updated to include /analytics prefix)
+// ============================================================
+
+export async function getConstituencies(params = {}) {
+    const query = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+        if (
+            value !== undefined &&
+            value !== null &&
+            value !== ""
+        ) {
+            query.append(key, value);
+        }
+    });
+
+    const queryString = query.toString();
+    const response = await request(
+        `/analytics/constituencies${queryString ? `?${queryString}` : ""}`
+    );
+    
+    return response; 
+}
+
+export async function getConstituency(seatId) {
+    const response = await request(
+        `/analytics/constituencies/${encodeURIComponent(seatId)}`
+    );
+    return response?.data ?? response;
+}
+
+export async function getConstituencyHistory(seatId) {
+    const response = await request(
+        `/analytics/constituencies/${encodeURIComponent(seatId)}`
+    );
+    // Profile payload contains 'history' directly from the updated backend route
+    const profile = response?.data ?? response;
+    return profile?.history ?? [];
 }
 
 // ============================================================
@@ -87,6 +138,11 @@ export async function getElectionResults(
     return request(
         `/results/?election_id=${electionId}&limit=${limit}&offset=${offset}`
     );
+}
+
+export async function getElectionResult(id) {
+    const response = await request(`/results/${id}`);
+    return response?.data ?? response;
 }
 
 export function getMapResults({ electionId, seatType, state } = {}) {
@@ -157,6 +213,18 @@ export function getElectionTrends(seatId = null) {
     return request(`/analytics/election-comparison${query}`);
 }
 
+export function getMarginDistribution() {
+    return request("/analytics/margin-distribution");
+}
+
+export function getTurnout() {
+    return request("/analytics/turnout");
+}
+
+export function getSwing() {
+    return request("/analytics/swing");
+}
+
 // ============================================================
 // INTELLIGENCE ALERTS & PIPELINE LOGS (SYSTEM TELEMETRY)
 // ============================================================
@@ -199,6 +267,7 @@ export const api = {
     getElections,
     getElection,
     getElectionResults,
+    getElectionResult,
     getElectionSummary,
     getPartySeatDistribution,
     getElectionSeatCounts,
@@ -216,7 +285,12 @@ export const api = {
     getResults,
     getMapResults,
     getCandidates,
+    getCandidate,
     getParties,
+    getParty,
     getIntelligenceAlerts,
     getPipelineLogs,
+    getConstituencies,
+    getConstituency,
+    getConstituencyHistory,
 };
