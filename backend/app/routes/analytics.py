@@ -8,6 +8,52 @@ router = APIRouter(
 
 
 # ============================================================
+# RESULTS ENDPOINTS 
+# ============================================================
+
+@router.get("/results/{election_id}")
+def get_election_results_by_id(
+    election_id: int,
+    limit: int = 1000,
+    offset: int = 0
+):
+    connection = get_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    try:
+        query = """
+            SELECT * FROM election_results
+            WHERE election_id = %s
+            LIMIT %s OFFSET %s
+        """
+        cursor.execute(query, (election_id, limit, offset))
+        return cursor.fetchall()
+    finally:
+        cursor.close()
+        connection.close()
+
+
+@router.get("/results/")
+def get_all_election_results(
+    limit: int = 1000,
+    offset: int = 0
+):
+    connection = get_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    try:
+        query = """
+            SELECT * FROM election_results
+            LIMIT %s OFFSET %s
+        """
+        cursor.execute(query, (limit, offset))
+        return cursor.fetchall()
+    finally:
+        cursor.close()
+        connection.close()
+
+
+# ============================================================
 # OVERVIEW
 # ============================================================
 
@@ -422,6 +468,10 @@ def get_constituencies(
         if state and state not in ["All States", "all", ""]:
             base_sql += " AND st.state_name = %s"
             params.append(state)
+
+        if election_id is not None:
+            base_sql += " AND er.election_id = %s"
+            params.append(election_id)
 
         # Get total count matching criteria
         cursor.execute(f"SELECT COUNT(DISTINCT s.seat_id) as total {base_sql}", params)
