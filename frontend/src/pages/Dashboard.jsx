@@ -23,7 +23,6 @@ import IntelligenceAlerts from "../components/dashboard/IntelligenceAlerts";
 import PartyDistributionCard from "../components/dashboard/PartyDistributionCard";
 import JurisdictionOverview from "../components/dashboard/JurisdictionOverview";
 import HistoricalTrendsTable from "../components/dashboard/HistoricalTrendsTable";
-import ElectionSnapshotCard from "../components/dashboard/ElectionSnapshotCard";
 import TurnoutTrendCard from "../components/dashboard/TurnoutTrendCard";
 
 export default function Dashboard() {
@@ -198,15 +197,11 @@ export default function Dashboard() {
           totalSeats={totalSeats} 
           getPartyBarColor={getPartyBarColor} 
         />
-        <ElectionSnapshotCard 
-          snapshot={currentSnapshot} 
-          getPartyBarColor={getPartyBarColor} 
-        />
       </div>
 
       {/* Turnout Trend Chart & Jurisdiction Overview Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TurnoutTrendCard />
+        <TurnoutTrendCard summary={summary} electionName={currentSnapshot?.election_name} />
         <JurisdictionOverview stateSeats={stateSeats} />
       </div>
 

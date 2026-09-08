@@ -112,9 +112,10 @@ export async function getHistoricalTrends() {
     return normalizeData(response);
 }
 
-export function getElectionSummary(electionId = null) {
+export async function getElectionSummary(electionId = null) {
     const query = electionId ? `?election_id=${electionId}` : "";
-    return request(`/analytics/overview${query}`);
+    const response = await request(`/analytics/election-summary${query}`);
+    return response?.data ?? response;
 }
 
 export async function getStatePerformance(electionId = null) {

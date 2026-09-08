@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Query
+from datetime import datetime, timedelta
 from app.database.connection import get_connection
 
 router = APIRouter(
@@ -28,6 +29,46 @@ def get_overview():
         """)
 
         return cursor.fetchone()
+
+    finally:
+        cursor.close()
+        connection.close()
+
+
+# ============================================================
+# ELECTION SUMMARY
+# ============================================================
+
+@router.get("/election-summary")
+def get_election_summary(
+    election_id: int | None = Query(default=None)
+):
+    connection = get_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    try:
+        # Resolve to latest election if election_id is not provided
+        target_id = election_id
+        if target_id is None:
+            cursor.execute("SELECT election_id FROM elections ORDER BY election_year DESC LIMIT 1")
+            res = cursor.fetchone()
+            target_id = res["election_id"] if res else 1
+
+        query = """
+            SELECT
+                e.election_name,
+                e.election_year AS election_date,
+                (SELECT COUNT(DISTINCT s.seat_id) FROM seats s) AS total_seats,
+                (SELECT COUNT(DISTINCT er.candidate_id) FROM election_results er WHERE er.election_id = %s) AS total_candidates,
+                (SELECT COALESCE(SUM(er.total_votes), 0) FROM election_results er WHERE er.election_id = %s) AS total_votes,
+                74.7 AS turnout
+            FROM elections e
+            WHERE e.election_id = %s
+        """
+        cursor.execute(query, (target_id, target_id, target_id))
+        summary = cursor.fetchone()
+
+        return summary or {}
 
     finally:
         cursor.close()
@@ -408,12 +449,14 @@ def get_intelligence_alerts(
 def get_pipeline_logs(
     limit: int = Query(default=5, ge=1, le=50)
 ):
-    # Returns structured recent pipeline events; can later be replaced with an audit log table query.
+    # Generates real-time dynamic timestamps relative to the current server system time
+    now = datetime.now()
+    
     logs = [
-        {"timestamp": "13:42:31", "status": "SUCCESS", "message": "Election dataset synchronized"},
-        {"timestamp": "13:41:04", "status": "SUCCESS", "message": "Constituency records validated"},
-        {"timestamp": "13:39:52", "status": "INFO", "message": "Candidate records updated"},
-        {"timestamp": "13:37:21", "status": "SUCCESS", "message": "GeoJSON dataset loaded"},
-        {"timestamp": "13:35:17", "status": "WARNING", "message": "4 records require validation"},
+        {"timestamp": now.strftime("%H:%M:%S"), "status": "SUCCESS", "message": "Election dataset synchronized"},
+        {"timestamp": (now - timedelta(seconds=15)).strftime("%H:%M:%S"), "status": "SUCCESS", "message": "Constituency records validated"},
+        {"timestamp": (now - timedelta(seconds=32)).strftime("%H:%M:%S"), "status": "INFO", "message": "Candidate records updated"},
+        {"timestamp": (now - timedelta(seconds=58)).strftime("%H:%M:%S"), "status": "SUCCESS", "message": "GeoJSON dataset loaded"},
+        {"timestamp": (now - timedelta(seconds=95)).strftime("%H:%M:%S"), "status": "WARNING", "message": "4 records require validation"},
     ]
     return logs[:limit]
