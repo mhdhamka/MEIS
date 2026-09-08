@@ -8,7 +8,7 @@ router = APIRouter(
 
 
 # ============================================================
-# RESULTS ENDPOINTS (Added to fix frontend 404)
+# RESULTS ENDPOINTS 
 # ============================================================
 
 @router.get("/results/{election_id}")

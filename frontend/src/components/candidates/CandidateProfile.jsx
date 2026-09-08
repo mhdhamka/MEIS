@@ -4,7 +4,6 @@ import {
     MapPin,
     Trophy,
     TrendingUp,
-    TrendingDown,
     Users,
     BarChart3,
     Building2,

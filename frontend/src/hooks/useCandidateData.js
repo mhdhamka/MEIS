@@ -400,7 +400,7 @@ export function useCandidateData(candidateId = null, initialFilters = {}) {
         return () => {
             mounted = false;
         };
-    }, [filterKey]);
+    }, [filterKey, filters, candidateId]);
 
     const candidates = useMemo(() => {
         return candidatesRaw.map(normalizeCandidate);
@@ -413,19 +413,16 @@ export function useCandidateData(candidateId = null, initialFilters = {}) {
     const directory = useMemo(() => {
         const map = new Map();
 
-        // 1. Initialize map entries from normalized candidate rows (which now contain direct result fields)
         for (const candidate of candidates) {
             const key = getCandidateKey(candidate);
             if (!map.has(key)) {
                 map.set(key, { ...candidate, history: [] });
             }
-            // Push the candidate entry itself into history if it holds execution result mapping
             if (candidate.electionId || candidate.result_status) {
                 map.get(key).history.push(candidate);
             }
         }
 
-        // 2. Supplement history via separate results dataset if applicable
         for (const result of results) {
             let key = result.candidateId;
 
@@ -452,7 +449,6 @@ export function useCandidateData(candidateId = null, initialFilters = {}) {
                 });
             }
 
-            // Prevent duplicate historical pushes if already captured via candidate join
             const existingHistory = map.get(key).history;
             const alreadyExists = existingHistory.some(h => String(h.electionId) === String(result.electionId) && String(h.seatCode) === String(result.seatCode));
             if (!alreadyExists) {
