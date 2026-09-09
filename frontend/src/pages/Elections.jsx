@@ -243,7 +243,7 @@ export default function ElectionsPage() {
     // ============================================================
 
     return (
-        <div className="p-6 space-y-6 min-h-screen bg-slate-950/5 text-slate-900 selection:bg-blue-500/20">
+        <div className="p-6 space-y-6 min-h-screen bg-white text-slate-900 selection:bg-blue-500/20 pb-12">
 
 
             {/* ====================================================
