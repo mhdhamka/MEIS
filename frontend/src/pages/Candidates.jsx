@@ -4,6 +4,9 @@ import {
     Trophy,
     Percent,
     BarChart3,
+    HelpCircle,
+    ChevronDown,
+    ChevronUp,
 } from "lucide-react";
 
 import CandidateCard from "../components/candidates/CandidateCard";
@@ -13,6 +16,7 @@ import CandidatePartyBreakdown from "../components/candidates/CandidatePartyBrea
 import { useCandidateData } from "../hooks/useCandidateData";
 
 const PAGE_SIZE = 12;
+const PARTY_PAGE_SIZE = 10; // Limits party breakdown to 10 items per page
 
 export default function CandidatesPage() {
     const [filters, setFilters] = useState({
@@ -53,6 +57,7 @@ export default function CandidatesPage() {
     } = useCandidateData(null, queryFilters);
 
     const [page, setPage] = useState(1);
+    const [partyPage, setPartyPage] = useState(1); // Pagination state for party breakdown
 
     const filteredCandidates =
         useMemo(() => {
@@ -171,6 +176,20 @@ export default function CandidatesPage() {
             currentPage,
         ]);
 
+    // Paginated logic for Party Breakdown
+    const totalPartyPages = Math.max(
+        1,
+        Math.ceil((partyBreakdown?.length || 0) / PARTY_PAGE_SIZE)
+    );
+
+    const currentPartyPage = Math.min(partyPage, totalPartyPages);
+
+    const paginatedPartyBreakdown = useMemo(() => {
+        if (!partyBreakdown) return [];
+        const start = (currentPartyPage - 1) * PARTY_PAGE_SIZE;
+        return partyBreakdown.slice(start, start + PARTY_PAGE_SIZE);
+    }, [partyBreakdown, currentPartyPage]);
+
     const stats = useMemo(() => {
         const total = filteredCandidates.length;
 
@@ -224,11 +243,9 @@ export default function CandidatesPage() {
     }
 
     return (
-        <div className="p-6 space-y-6 min-h-screen bg-slate-950/5 text-slate-900 selection:bg-blue-500/20 pb-12">
+        <div className="p-6 space-y-6 min-h-screen bg-white text-slate-900 selection:bg-blue-500/20 pb-12">
 
-            {/* ====================================================
-                HEADER (Matched exactly to Elections.jsx Style)
-            ==================================================== */}
+            {/* HEADER */}
             <header className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 p-6 rounded-2xl bg-white/75 backdrop-blur-xl border border-white/40 shadow-xl shadow-slate-200/50">
                 <div>
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 text-[#134074] rounded-full text-[10px] uppercase tracking-[0.18em] font-extrabold border border-blue-500/20 backdrop-blur-sm">
@@ -255,16 +272,16 @@ export default function CandidatesPage() {
                 </div>
             </header>
 
-            {/* ---------------------------------------- */}
+            <GuideSection />
+
             {/* KPIs */}
-            {/* ---------------------------------------- */}
             <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
                 <StatCard
                     icon={Users}
                     label="Candidates"
                     value={stats.total}
                     description="Filtered candidates"
-                    iconBg="bg-blue-50 text-blue-600"
+                    iconBg="bg-blue-50 text-blue-600 border border-blue-100"
                 />
 
                 <StatCard
@@ -272,7 +289,7 @@ export default function CandidatesPage() {
                     label="Wins"
                     value={stats.wins}
                     description="Recorded victories"
-                    iconBg="bg-emerald-50 text-emerald-600"
+                    iconBg="bg-emerald-50 text-emerald-600 border border-emerald-100"
                 />
 
                 <StatCard
@@ -280,7 +297,7 @@ export default function CandidatesPage() {
                     label="Losses"
                     value={stats.losses}
                     description="Recorded losses"
-                    iconBg="bg-rose-50 text-rose-600"
+                    iconBg="bg-rose-50 text-rose-600 border border-rose-100"
                 />
 
                 <StatCard
@@ -288,13 +305,11 @@ export default function CandidatesPage() {
                     label="Elections Contested"
                     value={stats.contested}
                     description="Across candidate history"
-                    iconBg="bg-indigo-50 text-indigo-600"
+                    iconBg="bg-indigo-50 text-indigo-600 border border-indigo-100"
                 />
             </section>
 
-            {/* ---------------------------------------- */}
             {/* Filters Container */}
-            {/* ---------------------------------------- */}
             <section className="p-4 rounded-2xl bg-white/60 backdrop-blur-xl border border-white/40 shadow-lg shadow-slate-200/40">
                 <CandidateFilters
                     filters={filters}
@@ -309,9 +324,7 @@ export default function CandidatesPage() {
                 />
             </section>
 
-            {/* ---------------------------------------- */}
             {/* Directory Section */}
-            {/* ---------------------------------------- */}
             <section className="space-y-4">
                 <div className="flex items-center justify-between px-1">
                     <div>
@@ -345,9 +358,7 @@ export default function CandidatesPage() {
                 )}
             </section>
 
-            {/* ---------------------------------------- */}
             {/* Pagination */}
-            {/* ---------------------------------------- */}
             {filteredCandidates.length > PAGE_SIZE && (
                 <div className="flex justify-center pt-2">
                     <Pagination
@@ -358,35 +369,120 @@ export default function CandidatesPage() {
                 </div>
             )}
 
-            {/* ---------------------------------------- */}
             {/* Party Breakdown Container */}
-            {/* ---------------------------------------- */}
-            <section className="p-6 rounded-2xl bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl shadow-slate-200/40">
-                <CandidatePartyBreakdown data={partyBreakdown} />
+            <section className="p-6 rounded-2xl bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl shadow-slate-200/40 space-y-4">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">Party Breakdown</h3>
+                    <span className="text-xs font-semibold px-3 py-1 rounded-full bg-white/80 backdrop-blur-sm border border-slate-200/60 text-slate-500 shadow-sm">
+                        Page {currentPartyPage} of {totalPartyPages}
+                    </span>
+                </div>
+
+                <CandidatePartyBreakdown data={paginatedPartyBreakdown} />
+
+                {/* Party Breakdown Pagination */}
+                {partyBreakdown && partyBreakdown.length > PARTY_PAGE_SIZE && (
+                    <div className="flex justify-center pt-2">
+                        <Pagination
+                            currentPage={currentPartyPage}
+                            totalPages={totalPartyPages}
+                            onPageChange={setPartyPage}
+                        />
+                    </div>
+                )}
             </section>
         </div>
     );
 }
 
-function StatCard({ icon: Icon, label, value, description, iconBg }) {
+function GuideSection() {
+    const [isOpen, setIsOpen] = useState(true);
+
     return (
-        <div className="p-6 rounded-2xl bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl shadow-slate-200/40 flex items-start justify-between">
-            <div>
-                <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
-                    {label}
-                </p>
+        <section className="rounded-2xl bg-white/80 backdrop-blur-xl border border-slate-200/60 shadow-lg shadow-slate-200/40 p-6 transition-all">
+            <div 
+                className="flex items-center justify-between cursor-pointer select-none"
+                onClick={() => setIsOpen(!isOpen)}
+            >
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shadow-sm">
+                        <HelpCircle size={18} />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+                            Guide
+                        </p>
+                        <h2 className="text-sm font-bold text-slate-900 tracking-tight">
+                            How to use the Candidates Directory
+                        </h2>
+                    </div>
+                </div>
 
-                <p className="mt-2 text-2xl font-black text-slate-900 tracking-tight">
-                    {Number(value || 0).toLocaleString()}
-                </p>
-
-                <p className="mt-1 text-xs text-slate-500 font-medium">
-                    {description}
-                </p>
+                <button 
+                    type="button"
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 transition"
+                    aria-label="Toggle Guide"
+                >
+                    {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </button>
             </div>
 
-            <div className={`rounded-2xl p-3.5 shadow-sm ${iconBg}`}>
-                <Icon size={20} />
+            {isOpen && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-slate-100">
+                    <div className="p-4 rounded-xl bg-white/60 border border-slate-200/60 shadow-sm space-y-1">
+                        <h3 className="text-xs font-bold text-slate-900">
+                            1. Search & Filter
+                        </h3>
+                        <p className="text-xs text-slate-500 font-normal leading-relaxed">
+                            Use the search box or filter options below to quickly narrow down records by name, political party, state, seat, or electoral result.
+                        </p>
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-white/60 border border-slate-200/60 shadow-sm space-y-1">
+                        <h3 className="text-xs font-bold text-slate-900">
+                            2. Track Performance Metrics
+                        </h3>
+                        <p className="text-xs text-slate-500 font-normal leading-relaxed">
+                            Monitor aggregate wins, losses, and contested races dynamically update in the KPI summary cards based on your applied filters.
+                        </p>
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-white/60 border border-slate-200/60 shadow-sm space-y-1">
+                        <h3 className="text-xs font-bold text-slate-900">
+                            3. Inspect Profiles
+                        </h3>
+                        <p className="text-xs text-slate-500 font-normal leading-relaxed">
+                            Click on any candidate card to open their detailed profile view, examining their complete electoral trajectory over time.
+                        </p>
+                    </div>
+                </div>
+            )}
+        </section>
+    );
+}
+
+function StatCard({ icon: Icon, label, value, description, iconBg }) {
+    return (
+        <div className="p-6 rounded-3xl bg-white/75 backdrop-blur-xl border border-white/60 shadow-xl shadow-slate-200/50 relative flex flex-col justify-between overflow-hidden">
+            <div className="flex items-start justify-between">
+                <div>
+                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                        {label}
+                    </p>
+                    <p className="mt-2 text-3xl font-black text-slate-900 tracking-tight">
+                        {Number(value || 0).toLocaleString()}
+                    </p>
+                </div>
+
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm ${iconBg}`}>
+                    <Icon size={18} />
+                </div>
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-slate-100/80">
+                <p className="text-xs text-slate-500 font-medium">
+                    {description}
+                </p>
             </div>
         </div>
     );
