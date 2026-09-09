@@ -18,10 +18,10 @@ export default function CandidateFilters({
     const resetFilters = () => {
         setFilters({
             search: "",
-            party: "all",
-            election: "all",
+            party_id: "all",
+            election_id: "all",
             state: "all",
-            seat: "all",
+            seat_id: "all",
             result: "all",
         });
     };
@@ -41,7 +41,7 @@ export default function CandidateFilters({
                     />
                     <input
                         type="text"
-                        value={filters.search}
+                        value={filters.search || ""}
                         onChange={(event) =>
                             updateFilter("search", event.target.value)
                         }
@@ -54,29 +54,18 @@ export default function CandidateFilters({
                 <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2 lg:grid-cols-5">
                     <FilterSelect
                         label="Party"
-                        value={filters.party}
-                        onChange={(value) => updateFilter("party", value)}
+                        value={filters.party_id ?? "all"}
+                        onChange={(value) => updateFilter("party_id", value)}
                         options={parties.map((party) => ({
-                            value:
-                                party.party_id ??
-                                party.partyId ??
-                                party.id ??
-                                party.party_code ??
-                                party.code ??
-                                party.name,
-                            label:
-                                party.party_name ??
-                                party.partyName ??
-                                party.name ??
-                                party.party_code ??
-                                party.code,
+                            value: party.party_id ?? party.partyId ?? party.id,
+                            label: party.party_name ?? party.partyName ?? party.name,
                         }))}
                     />
 
                     <FilterSelect
                         label="Election"
-                        value={filters.election}
-                        onChange={(value) => updateFilter("election", value)}
+                        value={filters.election_id ?? "all"}
+                        onChange={(value) => updateFilter("election_id", value)}
                         options={elections.map((election) => ({
                             value:
                                 election.election_id ??
@@ -93,7 +82,7 @@ export default function CandidateFilters({
 
                     <FilterSelect
                         label="State"
-                        value={filters.state}
+                        value={filters.state ?? "all"}
                         onChange={(value) => updateFilter("state", value)}
                         options={states.map((state) => ({
                             value:
@@ -115,27 +104,17 @@ export default function CandidateFilters({
 
                     <FilterSelect
                         label="Seat"
-                        value={filters.seat}
-                        onChange={(value) => updateFilter("seat", value)}
+                        value={filters.seat_id ?? "all"}
+                        onChange={(value) => updateFilter("seat_id", value)}
                         options={seats.map((seat) => ({
-                            value:
-                                seat.seat_code ??
-                                seat.code_parlimen ??
-                                seat.code_dun ??
-                                seat.code ??
-                                seat.id,
-                            label:
-                                seat.seat_name ??
-                                seat.name ??
-                                seat.parlimen ??
-                                seat.dun ??
-                                seat.code,
+                            value: seat.seat_id ?? seat.id,
+                            label: `${seat.seat_code ?? seat.code} - ${seat.seat_name ?? seat.name}`,
                         }))}
                     />
 
                     <FilterSelect
                         label="Result"
-                        value={filters.result}
+                        value={filters.result ?? "all"}
                         onChange={(value) => updateFilter("result", value)}
                         options={[
                             { value: "WIN", label: "Won" },
@@ -198,7 +177,7 @@ function FilterSelect({ label, value, onChange, options = [] }) {
                         ))}
                 </select>
 
-                {/* Custom chevron dropdown icon to keep styling native & clean */}
+                {/* Custom chevron dropdown icon */}
                 <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
                     <svg
                         className="h-4 w-4"

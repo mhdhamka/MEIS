@@ -21,29 +21,29 @@ const PARTY_PAGE_SIZE = 10; // Limits party breakdown to 10 items per page
 export default function CandidatesPage() {
     const [filters, setFilters] = useState({
         search: "",
-        party: "all",
-        election: "all",
+        party_id: "all",
+        election_id: "all",
         state: "all",
-        seat: "all",
+        seat_id: "all",
         result: "all",
     });
 
     const queryFilters = useMemo(() => {
         const params = {};
-        if (filters.election && filters.election !== "all") {
-            params.election_id = filters.election;
+        if (filters.election_id && filters.election_id !== "all") {
+            params.election_id = filters.election_id;
         }
-        if (filters.party && filters.party !== "all") {
-            params.party_id = filters.party;
+        if (filters.party_id && filters.party_id !== "all") {
+            params.party_id = filters.party_id;
         }
         if (filters.state && filters.state !== "all") {
             params.state = filters.state;
         }
-        if (filters.seat && filters.seat !== "all") {
-            params.seat_id = filters.seat;
+        if (filters.seat_id && filters.seat_id !== "all") {
+            params.seat_id = filters.seat_id;
         }
         return params;
-    }, [filters.election, filters.party, filters.state, filters.seat]);
+    }, [filters.election_id, filters.party_id, filters.state, filters.seat_id]);
 
     const {
         candidates,
@@ -85,10 +85,11 @@ export default function CandidatesPage() {
                         }
                     }
 
-                    if (filters.party !== "all") {
+                    if (filters.party_id !== "all") {
                         if (
-                            String(candidate.party).toLowerCase() !==
-                            String(filters.party).toLowerCase()
+                            !String(candidate.party)
+                                .toLowerCase()
+                                .includes(String(filters.party_id).toLowerCase())
                         ) {
                             return false;
                         }
@@ -96,19 +97,22 @@ export default function CandidatesPage() {
 
                     if (filters.state !== "all") {
                         if (
-                            String(candidate.state).toLowerCase() !==
-                            String(filters.state).toLowerCase()
+                            !String(candidate.state)
+                                .toLowerCase()
+                                .includes(String(filters.state).toLowerCase())
                         ) {
                             return false;
                         }
                     }
 
-                    if (filters.seat !== "all") {
-                        const selectedSeat = String(filters.seat).toLowerCase();
-                        const seatCode = String(candidate.seatCode).toLowerCase();
-                        const seatName = String(candidate.seatName).toLowerCase();
+                    if (filters.seat_id !== "all") {
+                        const selectedSeat = String(filters.seat_id).toLowerCase();
+                        const seatId = String(candidate.seatId ?? "").toLowerCase();
+                        const seatCode = String(candidate.seatCode ?? "").toLowerCase();
+                        const seatName = String(candidate.seatName ?? "").toLowerCase();
 
                         if (
+                            selectedSeat !== seatId &&
                             selectedSeat !== seatCode &&
                             selectedSeat !== seatName
                         ) {
@@ -116,13 +120,13 @@ export default function CandidatesPage() {
                         }
                     }
 
-                    if (filters.election !== "all") {
+                    if (filters.election_id !== "all") {
                         const matches =
                             candidate.history?.some(
                                 (item) =>
                                     String(item.electionId) ===
-                                    String(filters.election)
-                            ) || String(candidate.electionId) === String(filters.election);
+                                    String(filters.election_id)
+                            ) || String(candidate.electionId) === String(filters.election_id);
 
                         if (!matches) {
                             return false;

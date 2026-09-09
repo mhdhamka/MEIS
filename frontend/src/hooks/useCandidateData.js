@@ -456,7 +456,8 @@ export function useCandidateData(candidateId = null, initialFilters = {}) {
             }
         }
 
-        return Array.from(map.values()).map((candidate) => {
+        // Apply client-side filtering for 'result' if chosen (WIN/LOSS)
+        let finalArray = Array.from(map.values()).map((candidate) => {
             const history = candidate.history || [];
             const latest = history.length > 0 ? history[history.length - 1] : candidate;
             const statistics = calculateCandidateStatistics(history, candidate);
@@ -472,7 +473,13 @@ export function useCandidateData(candidateId = null, initialFilters = {}) {
                 ...statistics,
             };
         });
-    }, [candidates, results]);
+
+        if (filters.result && filters.result !== "all") {
+            finalArray = finalArray.filter((c) => c.result === filters.result);
+        }
+
+        return finalArray;
+    }, [candidates, results, filters.result]);
 
     const selectedCandidate = useMemo(() => {
         if (!candidateId) return null;
