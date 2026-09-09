@@ -1,19 +1,15 @@
 import { useParams } from "react-router-dom";
-
 import CandidateProfile from "../components/candidates/CandidateProfile";
 import { useCandidateData } from "../hooks/useCandidateData";
 
 export default function CandidateDetail() {
-    const { candidateId } =
-        useParams();
+    const { candidateId } = useParams();
 
     const {
         selectedCandidate,
         loading,
         error,
-    } = useCandidateData(
-        candidateId
-    );
+    } = useCandidateData(candidateId);
 
     if (loading) {
         return (
@@ -47,9 +43,7 @@ export default function CandidateDetail() {
 
     return (
         <CandidateProfile
-            candidate={
-                selectedCandidate
-            }
+            candidate={selectedCandidate}
         />
     );
 }

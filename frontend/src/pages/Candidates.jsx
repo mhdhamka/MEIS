@@ -85,7 +85,7 @@ export default function CandidatesPage() {
                         }
                     }
 
-                    if (filters.party_id !== "all") {
+                    if (filters.party_id !== "all" && !queryFilters.party_id) {
                         if (
                             !String(candidate.party)
                                 .toLowerCase()
@@ -95,7 +95,7 @@ export default function CandidatesPage() {
                         }
                     }
 
-                    if (filters.state !== "all") {
+                    if (filters.state !== "all" && !queryFilters.state) {
                         if (
                             !String(candidate.state)
                                 .toLowerCase()
@@ -105,7 +105,7 @@ export default function CandidatesPage() {
                         }
                     }
 
-                    if (filters.seat_id !== "all") {
+                    if (filters.seat_id !== "all" && !queryFilters.seat_id) {
                         const selectedSeat = String(filters.seat_id).toLowerCase();
                         const seatId = String(candidate.seatId ?? "").toLowerCase();
                         const seatCode = String(candidate.seatCode ?? "").toLowerCase();
@@ -120,7 +120,7 @@ export default function CandidatesPage() {
                         }
                     }
 
-                    if (filters.election_id !== "all") {
+                    if (filters.election_id !== "all" && !queryFilters.election_id) {
                         const matches =
                             candidate.history?.some(
                                 (item) =>
@@ -150,7 +150,7 @@ export default function CandidatesPage() {
                     return true;
                 }
             );
-        }, [candidates, filters]);
+        }, [candidates, filters, queryFilters]);
 
     const totalPages = Math.max(
         1,
