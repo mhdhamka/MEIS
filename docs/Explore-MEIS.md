@@ -2,19 +2,18 @@
 
 <div align="center">
 
-| Module                            | Purpose                               |     Status    |
-| :-------------------------------- | :------------------------------------ | :-----------: |
-| **Electoral Map**             | Explore constituencies geographically |   🔵 Planned   |
-| **Constituency Intelligence** | Parliamentary & DUN analysis          |   🔵 Planned  |
-| **Election Analytics**         | Historical results & voting trends    |   🟢 Active   |
-| **Candidate Intelligence**     | Candidate & party relationships       | 🟡 Developing |
-| **ETL Pipeline**               | Clean, transform & ingest datasets    |   🟡 Developing    |
-| **API Layer**                   | Structured electoral data access      |   🟢 Active   |
-| **System Telemetry**           | API, database & pipeline monitoring   | 🟡 Developing |
-| **AI Intelligence**            | Advanced analytical capabilities      |   🔵 Planned  |
+| Module | Purpose |
+| :--- | :--- |
+| **Electoral Map** | Explore constituencies geographically |
+| **Constituency Intelligence** | Parliamentary & DUN analysis |
+| **Election Analytics** | Historical results & voting trends |
+| **Candidate Intelligence** | Candidate & party relationships |
+| **ETL Pipeline** | Clean, transform & ingest datasets |
+| **API Layer** | Structured electoral data access |
+| **System Telemetry** | API, database & pipeline monitoring |
+| **AI Intelligence** | Advanced analytical capabilities |
 
 </div>
-
 ---
 
 # Core Capabilities
