@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import {
     Table2,
     LayoutGrid,
@@ -209,8 +210,17 @@ export default function ConstituenciesPage() {
 
             <div className="bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-6 md:p-8 shadow-sm flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                 <div className="space-y-2">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-[10px] uppercase tracking-[0.18em] font-extrabold text-[#134074]">
-                        Electoral Intelligence
+                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
+                        <Link
+                            to="/"
+                            className="hover:text-[#134074]"
+                        >
+                            MEIS
+                        </Link>
+                        <span>/</span>
+                        <span className="text-slate-600">
+                            Constituencies
+                        </span>
                     </div>
                     <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900">
                         Constituencies

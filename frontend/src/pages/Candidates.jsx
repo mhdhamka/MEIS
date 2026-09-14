@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
     Users,
     Trophy,
@@ -252,9 +253,18 @@ export default function CandidatesPage() {
             {/* HEADER */}
             <header className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 p-6 rounded-2xl bg-white/75 backdrop-blur-xl border border-white/40 shadow-xl shadow-slate-200/50">
                 <div>
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 text-[#134074] rounded-full text-[10px] uppercase tracking-[0.18em] font-extrabold border border-blue-500/20 backdrop-blur-sm">
-                        Candidate Intelligence
-                    </span>
+                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
+                        <Link
+                            to="/"
+                            className="hover:text-[#134074]"
+                        >
+                            MEIS
+                        </Link>
+                        <span>/</span>
+                        <span className="text-slate-600">
+                            Candidates
+                        </span>
+                    </div>
 
                     <h1 className="text-3xl font-black tracking-tight text-slate-900 mt-3 bg-gradient-to-r from-slate-900 via-[#134074] to-blue-800 bg-clip-text text-transparent">
                         Candidates Directory
