@@ -6,6 +6,7 @@ import {
   Vote,
   Users,
   Building2,
+  Landmark,
 } from "lucide-react";
 import malaysiaFlag from "../../assets/images/malaysia.png";
 
@@ -34,6 +35,11 @@ const navigation = [
     label: "Candidates",
     icon: Users,
     path: "/candidates",
+  },
+  {
+    label: "Parties",
+    icon: Landmark,
+    path: "/parties",
   },
   {
     label: "Analytics",
