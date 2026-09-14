@@ -68,6 +68,7 @@ The data pipeline operates on an **Extract, Transform, Load (ETL)** architecture
 ### Phase 1: Data Ingestion (`ingestion/ingest_election_data.py`)
 
 * **Purpose**: Automates the download of consolidated raw ballot and statistics files from external version-controlled data repositories.
+* **Data Sources**: Fetches data programmatically from the open-source Malaysian Election Corpus (MECo) research repository via GitHub ([https://github.com/Thevesh/paper-meco-results](https://github.com/Thevesh/paper-meco-results)).
 * **Key Actions**:
 * Creates necessary local directories (`data/raw` and `data/datasets`).
 * Fetches `consol_ballots.csv` and `consol_stats.csv` via HTTP requests.
