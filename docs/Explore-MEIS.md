@@ -145,22 +145,6 @@ MAP
 
 ---
 
-# Data & Ethics
-
-MEIS is intended as a **research, educational, and analytical platform**.
-
-The system focuses on structured electoral information and statistical analysis. It should not be used to:
-
-* manipulate voters;
-* target individuals for political persuasion;
-* infer sensitive personal attributes;
-* fabricate electoral information;
-* present predictions as confirmed election outcomes.
-
-Where possible, datasets should retain provenance and clearly distinguish between **verified historical results, derived statistics, and analytical predictions**.
-
----
-
 # Why MEIS?
 
 Most electoral information is presented as isolated tables, articles, PDFs, or static dashboards.
@@ -191,3 +175,49 @@ MEIS brings those concepts together into one system:
                     ELECTORAL
                    INTELLIGENCE
 ```
+
+---
+
+
+# Design Philosophy
+
+MEIS is built around one principle:
+
+> **Turn electoral data into something that can be explored, connected, compared, and understood.**
+
+The objective is not to create another static election-results website.
+
+It is to build an **electoral intelligence infrastructure** where:
+
+```text
+DATA
+ ↓
+STRUCTURE
+ ↓
+RELATIONSHIPS
+ ↓
+ANALYSIS
+ ↓
+VISUALIZATION
+ ↓
+INTELLIGENCE
+```
+
+Every layer of the system exists to make the next layer more useful.
+
+---
+
+
+# Data & Ethics
+
+MEIS is intended as a **research, educational, and analytical platform**.
+
+The system focuses on structured electoral information and statistical analysis. It should not be used to:
+
+* manipulate voters;
+* target individuals for political persuasion;
+* infer sensitive personal attributes;
+* fabricate electoral information;
+* present predictions as confirmed election outcomes.
+
+Where possible, datasets should retain provenance and clearly distinguish between **verified historical results, derived statistics, and analytical predictions**.
