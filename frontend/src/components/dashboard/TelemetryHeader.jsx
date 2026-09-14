@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Server, Database, ShieldCheck, RefreshCw, Calendar } from "lucide-react";
 
 export default function TelemetryHeader({ electionsList = [], electionId, setElectionId, onRefresh }) {
@@ -32,10 +33,14 @@ export default function TelemetryHeader({ electionsList = [], electionId, setEle
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
         {/* Title Group */}
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#134074] px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 backdrop-blur-md shadow-2xs">
-              Malaysia Electoral Intelligence System
-            </span>
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
+            <Link
+                to="/"
+                className="hover:text-[#134074]"
+            >
+                MEIS
+            </Link>
+            <span>/</span>
           </div>
           <h1 className="text-2xl font-black tracking-tight text-slate-900 mt-2">
             Dashboard
