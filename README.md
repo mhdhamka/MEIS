@@ -29,19 +29,6 @@ Instead of treating election results as static tables, MEIS connects **constitue
 
 ---
 
-### Pipeline responsibilities
-
-| Stage              | Responsibility                                             |
-| :----------------- | :--------------------------------------------------------- |
-| **Ingestion**      | Import raw electoral datasets                              |
-| **Cleaning**       | Remove inconsistencies and malformed records               |
-| **Normalization**  | Standardize states, parties, candidates and constituencies |
-| **Validation**     | Detect invalid or conflicting records                      |
-| **Transformation** | Generate analytical datasets                               |
-| **Loading**        | Persist validated data into the relational database        |
-
----
-
 # Getting Started
 
 ## 1. Clone the repository
