@@ -81,16 +81,7 @@ export default function Topbar() {
             className="relative text-slate-500 transition hover:text-[#134074] p-2.5 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 cursor-pointer group"
           >
             <Bell size={18} />
-            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-blue-600 shadow-xs shadow-blue-400" />
           </button>
-
-          {/* SYSTEM API STATUS BADGE */}
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 shadow-2xs">
-            
-            <span className="text-xs font-bold text-slate-700 tracking-tight">
-              API Online
-            </span>
-          </div>
           
         </div>
       </header>
