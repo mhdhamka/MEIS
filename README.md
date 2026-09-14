@@ -123,7 +123,7 @@ http://localhost:3000
 
 **MEIS — Malaysia Electoral Intelligence System**
 
-Crafted with ⚡ by **[@mhdhamka](https://github.com/mhdhamka)**
+Developed by **[@mhdhamka](https://github.com/mhdhamka)**
 
 <br />
 

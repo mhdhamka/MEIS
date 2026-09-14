@@ -6,7 +6,6 @@ import {
   Vote,
   Users,
   Building2,
-  ShieldCheck,
 } from "lucide-react";
 import malaysiaFlag from "../../assets/images/malaysia.png";
 
@@ -111,11 +110,12 @@ export default function Sidebar() {
         <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900/60 border border-slate-800/60">
           <div className="flex items-center gap-2.5">
             <div className="flex flex-col">
-              <span className="text-[11px] font-bold text-slate-200 leading-tight">Portal Active</span>
-              <span className="text-[9px] text-slate-400">Secure Node</span>
+              <span className="text-[11px] font-bold text-slate-200 leading-tight flex items-center gap-1.5">
+                System Online
+              </span>
+              <span className="text-[9px] text-slate-400">Live Node</span>
             </div>
           </div>
-          <ShieldCheck size={16} className="text-emerald-500/80" />
         </div>
       </div>
     </aside>
