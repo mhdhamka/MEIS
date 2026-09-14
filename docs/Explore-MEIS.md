@@ -14,6 +14,7 @@
 | **AI Intelligence** | Advanced analytical capabilities |
 
 </div>
+
 ---
 
 # Core Capabilities
@@ -142,6 +143,19 @@ MAP
         │
         └── Compare Historical Results
 ```
+
+---
+
+
+# Interface Preview
+
+<div align="center">
+
+<img src="./docs/ERD.png" alt="MEIS System Architecture" width="900"/>
+
+**MEIS — Electoral Intelligence Architecture**
+
+</div>
 
 ---
 
