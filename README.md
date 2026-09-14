@@ -15,7 +15,7 @@
 
 <br />
 
-**[Explore MEIS](#) · [Documentation](./docs) · [Architecture](#system-architecture) · [API](#api) · [Report a Bug](../../issues) · [Request a Feature](../../issues)**
+**[Explore MEIS](./docs/Explore-MEIS.md) · [Documentation](./docs/Documentation.md) · [Architecture](./docs/Architecture.md) · [API](./docs/API.md) · [Report a Bug](../../issues) · [Request a Feature](../../issues)**
 
 </div>
 
