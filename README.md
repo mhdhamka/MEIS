@@ -47,9 +47,9 @@ Instead of treating election results as static tables, MEIS connects **constitue
 ## 1. Clone the repository
 
 ```bash
-git clone https://github.com/mhdhamka/Malaysia-Election-Intelligence-System.git
+git clone https://github.com/mhdhamka/MEIS.git
 
-cd Malaysia-Election-Intelligence-System
+cd MEIS
 ```
 
 ---

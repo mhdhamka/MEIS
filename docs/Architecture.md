@@ -124,6 +124,19 @@ MEIS treats electoral data as a **pipeline**, not a manually maintained spreadsh
 ```
 ---
 
+### Pipeline responsibilities
+
+| Stage              | Responsibility                                             |
+| :----------------- | :--------------------------------------------------------- |
+| **Ingestion**      | Import raw electoral datasets                              |
+| **Cleaning**       | Remove inconsistencies and malformed records               |
+| **Normalization**  | Standardize states, parties, candidates and constituencies |
+| **Validation**     | Detect invalid or conflicting records                      |
+| **Transformation** | Generate analytical datasets                               |
+| **Loading**        | Persist validated data into the relational database        |
+
+---
+
 # Live System Telemetry
 
 MEIS treats the interface itself as an operational workspace.
