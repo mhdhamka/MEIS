@@ -120,18 +120,6 @@ http://localhost:3000
 
 ---
 
-# Interface Preview
-
-<div align="center">
-
-<img src="./docs/ERD.png" alt="MEIS System Architecture" width="900"/>
-
-**MEIS — Electoral Intelligence Architecture**
-
-</div>
-
----
-
 # Built With
 
 <div align="center">
