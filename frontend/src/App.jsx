@@ -5,7 +5,7 @@ import MapPage from "./pages/Map";
 import ElectionsPage from "./pages/Elections";
 import ConstituenciesPage from "./pages/Constituencies";
 import CandidatesPage from "./pages/Candidates";
-import CandidateDetail from "./pages/CandidateDetail"; // 1. Import CandidateDetail
+import CandidateDetail from "./pages/CandidateDetail"; 
 import AnalyticsPage from "./pages/Analytics";
 import "./App.css";
 
