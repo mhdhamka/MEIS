@@ -100,3 +100,51 @@ def get_candidates(
     finally:
         cursor.close()
         connection.close()
+
+
+@router.get("/{candidate_id}")
+def get_candidate_by_id(candidate_id: str):
+    connection = get_connection()
+    cursor = connection.cursor(dictionary=True)
+    try:
+        query = """
+            SELECT
+                c.candidate_id,
+                c.candidate_uid,
+                c.candidate_name,
+                p.party_id,
+                p.party_name,
+                s.seat_id,
+                s.seat_code,
+                s.seat_name,
+                s.seat_type,
+                st.state_id,
+                st.state_name,
+                er.result_status,
+                er.total_votes AS votes,
+                er.vote_percentage AS vote_share,
+                er.election_id
+            FROM candidates c 
+            LEFT JOIN parties p ON c.party_id = p.party_id 
+            JOIN seats s ON c.seat_id = s.seat_id 
+            JOIN states st ON s.state_id = st.state_id 
+            LEFT JOIN election_results er ON c.candidate_id = er.candidate_id
+            WHERE c.candidate_id = %s OR c.candidate_uid = %s
+            LIMIT 1
+        """
+        cursor.execute(query, (candidate_id, candidate_id))
+        candidate = cursor.fetchone()
+        
+        if not candidate:
+            raise HTTPException(status_code=404, detail="Candidate not found")
+            
+        return {"data": candidate}
+
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+        
+    finally:
+        cursor.close()
+        connection.close()
