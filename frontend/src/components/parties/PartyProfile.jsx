@@ -6,17 +6,24 @@ export default function PartyProfile({ party }) {
         return null;
     }
 
-    const partyCode =
+    const rawPartyCode =
         party.party_code ??
         party.code ??
         party.abbreviation ??
-        "N/A";
+        party.short_name;
 
     const partyName =
         party.party_name ??
         party.name ??
         party.full_name ??
-        partyCode;
+        "Unknown Party";
+
+    // Smart fallback: Generate a short code badge from the full name if code is missing
+    const partyCode = rawPartyCode || (
+        partyName.length <= 5 
+            ? partyName 
+            : partyName.split(" ").map(word => word[0]).join("").slice(0, 4).toUpperCase()
+    );
 
     const seatsWon = Number(
         party.seats_won ??
@@ -48,7 +55,7 @@ export default function PartyProfile({ party }) {
                 : 0;
 
     const voteShare =
-        party.vote_share !== undefined
+        party.vote_share !== undefined && party.vote_share !== null
             ? Number(party.vote_share)
             : null;
 
@@ -74,17 +81,24 @@ export default function PartyProfile({ party }) {
 
                     <div className="flex items-center gap-4">
 
-                        <div className="
-                            flex h-20 w-20
-                            shrink-0
-                            items-center justify-center
-                            rounded-2xl
-                            bg-slate-900
-                            text-2xl
-                            font-black
-                            text-white
-                        ">
-                            {partyCode}
+                        <div 
+                            className="
+                                flex h-20 w-20
+                                shrink-0
+                                items-center justify-center
+                                rounded-2xl
+                                bg-slate-900
+                                text-xl
+                                font-black
+                                text-white
+                                tracking-wider
+                                overflow-hidden
+                                text-center
+                                px-1
+                            "
+                            title={partyName}
+                        >
+                            <span className="truncate">{partyCode}</span>
                         </div>
 
                         <div>
@@ -113,7 +127,7 @@ export default function PartyProfile({ party }) {
                                 text-sm
                                 text-slate-500
                             ">
-                                {partyCode}
+                                {rawPartyCode || partyCode}
                             </p>
 
                         </div>
@@ -121,7 +135,7 @@ export default function PartyProfile({ party }) {
                     </div>
 
                     <Link
-                        to={`/map?party=${encodeURIComponent(partyCode)}`}
+                        to={`/map?party=${encodeURIComponent(rawPartyCode || partyCode)}`}
                         className="
                             inline-flex
                             items-center
@@ -239,7 +253,7 @@ export default function PartyProfile({ party }) {
                                         );
 
                                     const share =
-                                        item.vote_share !== undefined
+                                        item.vote_share !== undefined && item.vote_share !== null
                                             ? Number(item.vote_share)
                                             : null;
 
@@ -366,7 +380,7 @@ export default function PartyProfile({ party }) {
                         </div>
 
                         <Link
-                            to={`/map?party=${encodeURIComponent(partyCode)}`}
+                            to={`/map?party=${encodeURIComponent(rawPartyCode || partyCode)}`}
                             className="
                                 rounded-xl
                                 border border-slate-300

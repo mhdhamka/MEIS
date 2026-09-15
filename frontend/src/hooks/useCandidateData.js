@@ -338,6 +338,7 @@ export function useCandidateData(candidateId = null, initialFilters = {}) {
                     cleanFilters.limit = 1000;
                 }
 
+                // Fetch core bulk data only. No single-candidate fetch means zero 404 spam.
                 const [
                     candidatesResponse,
                     resultsResponse,
@@ -345,7 +346,6 @@ export function useCandidateData(candidateId = null, initialFilters = {}) {
                     partiesResponse,
                     seatsResponse,
                     statesResponse,
-                    singleCandidateResponse,
                 ] = await Promise.all([
                     api.getCandidates(cleanFilters),
                     api.getResults(),
@@ -353,32 +353,11 @@ export function useCandidateData(candidateId = null, initialFilters = {}) {
                     api.getParties(),
                     api.getSeats(),
                     api.getStates().catch(() => []),
-                    candidateId ? api.getCandidate(candidateId).catch(() => null) : Promise.resolve(null),
                 ]);
 
                 if (!mounted) return;
 
-                let candidatesList = asArray(candidatesResponse);
-
-                if (singleCandidateResponse) {
-                    const targetId = String(candidateId);
-                    const alreadyIncluded = candidatesList.some((item) => {
-                        const id = firstDefined(
-                            item.candidate_id,
-                            item.candidateId,
-                            item.id,
-                            item.CandidateID,
-                            item.CANDIDATE_ID
-                        );
-                        return id !== undefined && String(id) === targetId;
-                    });
-
-                    if (!alreadyIncluded) {
-                        candidatesList = [...candidatesList, singleCandidateResponse];
-                    }
-                }
-
-                setCandidatesRaw(candidatesList);
+                setCandidatesRaw(asArray(candidatesResponse));
                 setResultsRaw(asArray(resultsResponse));
                 setElections(asArray(electionsResponse));
                 setParties(asArray(partiesResponse));

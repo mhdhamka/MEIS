@@ -78,16 +78,24 @@ export async function getCandidates(params = {}) {
     });
 
     const queryString = query.toString();
-    const response = await request(
-        `/candidates/${queryString ? `?${queryString}` : ""}`
-    );
+    const endpoint = queryString ? `/candidates/?${queryString}` : "/candidates/";
+    const response = await request(endpoint);
     
     return response;
 }
 
 export async function getCandidate(id) {
-    const response = await request(`/candidates/${encodeURIComponent(id)}`);
-    return response?.data ?? response;
+    if (!id || id === "undefined" || id === "null") return null;
+    try {
+        const response = await request(`/candidates/${encodeURIComponent(id)}`);
+        return response?.data ?? response;
+    } catch (error) {
+        // Suppress 404 console error spam if candidate lookup fails gracefully
+        if (error.message.includes("404")) {
+            return null;
+        }
+        throw error;
+    }
 }
 
 export function getParties() {
