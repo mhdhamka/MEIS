@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import PartyPerformance from "../components/PartyPerformance";
+import PartyPerformance from "./PartyPerformance";
 
 export default function PartyProfile({ party }) {
     if (!party) {
