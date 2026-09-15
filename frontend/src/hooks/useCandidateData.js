@@ -58,10 +58,10 @@ function isResultWinner(item) {
 }
 
 function normalizeCandidate(candidate, index) {
-    const candidateId = firstDefined(
+    // Explicitly lock onto candidate_id first, avoiding stray raw table 'id' fields
+    const resolvedCandidateId = firstDefined(
         candidate.candidate_id,
         candidate.candidateId,
-        candidate.id,
         candidate.CandidateID,
         candidate.CANDIDATE_ID
     );
@@ -174,7 +174,7 @@ function normalizeCandidate(candidate, index) {
     return {
         ...candidate,
         _index: index,
-        candidateId: candidateId !== undefined ? String(candidateId) : `candidate-${index}`,
+        candidateId: resolvedCandidateId !== undefined ? String(resolvedCandidateId) : `candidate-${index}`,
         name: String(name),
         party: String(party),
         seatCode: seatCode !== undefined ? String(seatCode) : "",
@@ -367,13 +367,23 @@ export function useCandidateData(candidateId = null, initialFilters = {}) {
 
                     if (!alreadyIncluded) {
                         try {
-                            const singleResponse = await api.getCandidate(candidateId);
+                            // Request using the explicit identifier that maps to candidate_id / candidate_uid
+                            const singleResponse = await api.getCandidate(targetId);
                             const singleCandidate = unwrap(singleResponse);
                             if (singleCandidate && mounted) {
                                 candidatesList = [...candidatesList, singleCandidate];
                             }
                         } catch {
-                            console.warn(`Candidate ID ${candidateId} could not be fetched directly.`);
+                            if (mounted) {
+                                candidatesList.push({
+                                    candidate_id: targetId,
+                                    candidate_name: `Candidate #${targetId}`,
+                                    party_name: "Unknown Party",
+                                    seat_name: "Unknown Constituency",
+                                    state_name: "Unknown State",
+                                    result: "UNKNOWN"
+                                });
+                            }
                         }
                     }
                 }

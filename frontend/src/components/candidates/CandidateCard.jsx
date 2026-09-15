@@ -36,11 +36,11 @@ export default function CandidateCard({
 }) {
     const latest = candidate.latestResult || {};
 
-    // Safely check various ID patterns to ensure the Link navigates properly
     const candidateId =
-        candidate.id ||
-        candidate.candidateId ||
         candidate.candidate_id ||
+        candidate.candidateId ||
+        candidate.candidate_uid ||
+        candidate.id ||
         candidate.name;
 
     return (
