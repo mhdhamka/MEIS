@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import {
     ShieldCheck,
-    Trophy,
     ArrowUpRight,
 } from "lucide-react";
 

@@ -338,7 +338,6 @@ export function useCandidateData(candidateId = null, initialFilters = {}) {
                     cleanFilters.limit = 1000;
                 }
 
-                // Fetch core bulk data only. No single-candidate fetch means zero 404 spam.
                 const [
                     candidatesResponse,
                     resultsResponse,
@@ -357,7 +356,31 @@ export function useCandidateData(candidateId = null, initialFilters = {}) {
 
                 if (!mounted) return;
 
-                setCandidatesRaw(asArray(candidatesResponse));
+                let candidatesList = asArray(candidatesResponse);
+
+                if (candidateId) {
+                    const targetId = String(candidateId);
+                    const alreadyIncluded = candidatesList.some((item) => {
+                        const normalizedItem = normalizeCandidate(item, 0);
+                        return String(normalizedItem.candidateId) === targetId;
+                    });
+
+                    if (!alreadyIncluded) {
+                        try {
+                            const singleResponse = await api.getCandidate(candidateId);
+                            const singleCandidate = unwrap(singleResponse);
+                            if (singleCandidate && mounted) {
+                                candidatesList = [...candidatesList, singleCandidate];
+                            }
+                        } catch (singleErr) {
+                            console.warn(`Candidate ID ${candidateId} could not be fetched directly.`);
+                        }
+                    }
+                }
+
+                if (!mounted) return;
+
+                setCandidatesRaw(candidatesList);
                 setResultsRaw(asArray(resultsResponse));
                 setElections(asArray(electionsResponse));
                 setParties(asArray(partiesResponse));
@@ -435,7 +458,6 @@ export function useCandidateData(candidateId = null, initialFilters = {}) {
             }
         }
 
-        // Apply client-side filtering for 'result' if chosen (WIN/LOSS)
         let finalArray = Array.from(map.values()).map((candidate) => {
             const history = candidate.history || [];
             const latest = history.length > 0 ? history[history.length - 1] : candidate;
