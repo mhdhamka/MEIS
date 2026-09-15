@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
+import PartyPerformance from "./PartyPerformance";
 
 export default function PartyProfile({ party }) {
-
     if (!party) {
         return null;
     }
@@ -47,18 +47,6 @@ export default function PartyProfile({ party }) {
         Math.max(candidates - wins, 0)
     );
 
-    const winRate =
-        party.win_rate !== undefined
-            ? Number(party.win_rate)
-            : candidates > 0
-                ? (wins / candidates) * 100
-                : 0;
-
-    const voteShare =
-        party.vote_share !== undefined && party.vote_share !== null
-            ? Number(party.vote_share)
-            : null;
-
     const history =
         Array.isArray(party.history)
             ? party.history
@@ -68,7 +56,6 @@ export default function PartyProfile({ party }) {
         <div className="space-y-6">
 
             {/* Party Identity */}
-
             <section className="
                 rounded-2xl
                 border border-slate-200
@@ -76,11 +63,8 @@ export default function PartyProfile({ party }) {
                 p-6
                 shadow-sm
             ">
-
                 <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-
                     <div className="flex items-center gap-4">
-
                         <div 
                             className="
                                 flex h-20 w-20
@@ -102,7 +86,6 @@ export default function PartyProfile({ party }) {
                         </div>
 
                         <div>
-
                             <p className="
                                 text-xs
                                 font-bold
@@ -129,9 +112,7 @@ export default function PartyProfile({ party }) {
                             ">
                                 {rawPartyCode || partyCode}
                             </p>
-
                         </div>
-
                     </div>
 
                     <Link
@@ -152,50 +133,15 @@ export default function PartyProfile({ party }) {
                     >
                         Explore on Electoral Map →
                     </Link>
-
                 </div>
-
             </section>
 
 
-            {/* KPIs */}
-
-            <section className="
-                grid
-                gap-4
-                sm:grid-cols-2
-                xl:grid-cols-4
-            ">
-
-                <StatCard
-                    label="Seats Won"
-                    value={seatsWon.toLocaleString()}
-                />
-
-                <StatCard
-                    label="Candidates"
-                    value={candidates.toLocaleString()}
-                />
-
-                <StatCard
-                    label="Win Rate"
-                    value={`${winRate.toFixed(1)}%`}
-                />
-
-                <StatCard
-                    label="Vote Share"
-                    value={
-                        voteShare !== null
-                            ? `${voteShare.toFixed(1)}%`
-                            : "—"
-                    }
-                />
-
-            </section>
+            {/* KPIs via PartyPerformance component */}
+            <PartyPerformance party={party} />
 
 
-            {/* Party Performance */}
-
+            {/* Party Performance Table */}
             <section className="
                 rounded-2xl
                 border border-slate-200
@@ -203,42 +149,29 @@ export default function PartyProfile({ party }) {
                 p-6
                 shadow-sm
             ">
-
                 <SectionHeader
-                    title="Party Performance"
+                    title="Party Performance History"
                     description="Electoral performance across general elections."
                 />
 
                 {history.length > 0 ? (
-
                     <div className="mt-6 overflow-x-auto">
-
                         <table className="w-full min-w-[600px] text-left">
-
                             <thead>
-
                                 <tr className="border-b border-slate-100">
-
                                     <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                                         Election
                                     </th>
-
                                     <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                                         Seats
                                     </th>
-
                                     <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                                         Vote Share
                                     </th>
-
                                 </tr>
-
                             </thead>
-
                             <tbody>
-
                                 {history.map((item, index) => {
-
                                     const election =
                                         item.election ??
                                         item.election_name ??
@@ -262,45 +195,32 @@ export default function PartyProfile({ party }) {
                                             key={index}
                                             className="border-b border-slate-50 last:border-0"
                                         >
-
                                             <td className="px-4 py-4 text-sm font-bold text-slate-900">
                                                 {election}
                                             </td>
-
                                             <td className="px-4 py-4 text-sm font-bold text-slate-700">
                                                 {seats}
                                             </td>
-
                                             <td className="px-4 py-4 text-sm font-semibold text-slate-600">
                                                 {share !== null
                                                     ? `${share.toFixed(1)}%`
                                                     : "—"}
                                             </td>
-
                                         </tr>
                                     );
-
                                 })}
-
                             </tbody>
-
                         </table>
-
                     </div>
-
                 ) : (
-
                     <EmptySection
                         message="Historical party performance is not available from the current API."
                     />
-
                 )}
-
             </section>
 
 
             {/* Candidate Breakdown */}
-
             <section className="
                 rounded-2xl
                 border border-slate-200
@@ -308,7 +228,6 @@ export default function PartyProfile({ party }) {
                 p-6
                 shadow-sm
             ">
-
                 <SectionHeader
                     title="Candidate Performance"
                     description="Candidate participation and election outcomes."
@@ -320,7 +239,6 @@ export default function PartyProfile({ party }) {
                     gap-4
                     sm:grid-cols-3
                 ">
-
                     <MiniStat
                         label="Candidates"
                         value={candidates}
@@ -335,14 +253,11 @@ export default function PartyProfile({ party }) {
                         label="Losses"
                         value={losses}
                     />
-
                 </div>
-
             </section>
 
 
             {/* Geography */}
-
             <section className="
                 rounded-2xl
                 border border-slate-200
@@ -350,7 +265,6 @@ export default function PartyProfile({ party }) {
                 p-6
                 shadow-sm
             ">
-
                 <SectionHeader
                     title="Party Geography"
                     description="Explore constituencies associated with this party."
@@ -363,11 +277,8 @@ export default function PartyProfile({ party }) {
                     bg-slate-50
                     p-5
                 ">
-
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
                         <div>
-
                             <p className="text-sm font-bold text-slate-900">
                                 {partyCode} Electoral Footprint
                             </p>
@@ -376,7 +287,6 @@ export default function PartyProfile({ party }) {
                                 View this party's constituencies and
                                 electoral strength on the map.
                             </p>
-
                         </div>
 
                         <Link
@@ -394,51 +304,13 @@ export default function PartyProfile({ party }) {
                         >
                             Open Map
                         </Link>
-
                     </div>
-
                 </div>
-
             </section>
 
         </div>
     );
 }
-
-
-function StatCard({ label, value }) {
-    return (
-        <div className="
-            rounded-2xl
-            border border-slate-200
-            bg-white
-            p-5
-            shadow-sm
-        ">
-
-            <p className="
-                text-[10px]
-                font-bold
-                uppercase
-                tracking-wider
-                text-slate-400
-            ">
-                {label}
-            </p>
-
-            <p className="
-                mt-2
-                text-2xl
-                font-black
-                text-slate-900
-            ">
-                {value}
-            </p>
-
-        </div>
-    );
-}
-
 
 function MiniStat({ label, value }) {
     return (
@@ -447,7 +319,6 @@ function MiniStat({ label, value }) {
             bg-slate-50
             p-4
         ">
-
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 {label}
             </p>
@@ -455,16 +326,13 @@ function MiniStat({ label, value }) {
             <p className="mt-1 text-xl font-black text-slate-900">
                 {Number(value).toLocaleString()}
             </p>
-
         </div>
     );
 }
 
-
 function SectionHeader({ title, description }) {
     return (
         <div>
-
             <h2 className="text-lg font-bold text-slate-900">
                 {title}
             </h2>
@@ -472,11 +340,9 @@ function SectionHeader({ title, description }) {
             <p className="mt-1 text-sm text-slate-500">
                 {description}
             </p>
-
         </div>
     );
 }
-
 
 function EmptySection({ message }) {
     return (
@@ -488,11 +354,9 @@ function EmptySection({ message }) {
             p-8
             text-center
         ">
-
             <p className="text-sm text-slate-500">
                 {message}
             </p>
-
         </div>
     );
 }

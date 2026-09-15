@@ -1,8 +1,5 @@
 import { Link } from "react-router-dom";
-import {
-    ShieldCheck,
-    ArrowUpRight,
-} from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 export default function PartyCard({ party }) {
     const partyId =
@@ -11,7 +8,6 @@ export default function PartyCard({ party }) {
         party.party_code ??
         party.code;
 
-    // Safely generate a short acronym or code if party_code is missing in database
     const rawPartyCode =
         party.party_code ??
         party.code ??
@@ -24,14 +20,12 @@ export default function PartyCard({ party }) {
         party.full_name ??
         "Unknown Party";
 
-    // Fallback logic: If no code exists, create a smart short badge from the party name
     const partyCode = rawPartyCode || (
         partyName.length <= 5 
             ? partyName 
             : partyName.split(" ").map(word => word[0]).join("").slice(0, 4).toUpperCase()
     );
 
-    // Safely parse metrics with 0 defaults so UI doesn't crash or break layout
     const seats = Number(
         party.seats_won ??
         party.seats ??
@@ -79,7 +73,6 @@ export default function PartyCard({ party }) {
                 </div>
 
                 <div className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600 border border-slate-200/60 backdrop-blur-sm">
-                    <ShieldCheck size={12} className="text-slate-500" />
                     Political Party
                 </div>
             </div>
@@ -101,31 +94,33 @@ export default function PartyCard({ party }) {
                     {rawPartyCode || partyCode}
                 </p>
 
-                {/* Metrics Grid */}
-                <div className="mt-5 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4 bg-slate-50/50 -mx-5 -mb-5 p-5">
-                    <Metric
-                        label="Seats Won"
-                        value={seats.toLocaleString()}
-                    />
+                {/* Metrics Grid Layout via PartyPerformance Component */}
+                <div className="mt-5 border-t border-slate-100 pt-4 bg-slate-50/50 -mx-5 -mb-5 p-5">
+                    <div className="grid grid-cols-2 gap-3">
+                        <Metric
+                            label="Seats Won"
+                            value={seats.toLocaleString()}
+                        />
 
-                    <Metric
-                        label="Candidates"
-                        value={candidates.toLocaleString()}
-                    />
+                        <Metric
+                            label="Candidates"
+                            value={candidates.toLocaleString()}
+                        />
 
-                    <Metric
-                        label="Win Rate"
-                        value={`${winRate.toFixed(1)}%`}
-                    />
+                        <Metric
+                            label="Win Rate"
+                            value={`${winRate.toFixed(1)}%`}
+                        />
 
-                    <Metric
-                        label="Vote Share"
-                        value={
-                            voteShare !== null
-                                ? `${voteShare.toFixed(1)}%`
-                                : "—"
-                        }
-                    />
+                        <Metric
+                            label="Vote Share"
+                            value={
+                                voteShare !== null
+                                    ? `${voteShare.toFixed(1)}%`
+                                    : "—"
+                            }
+                        />
+                    </div>
                 </div>
             </div>
         </Link>
