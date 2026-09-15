@@ -372,7 +372,7 @@ export function useCandidateData(candidateId = null, initialFilters = {}) {
                             if (singleCandidate && mounted) {
                                 candidatesList = [...candidatesList, singleCandidate];
                             }
-                        } catch (singleErr) {
+                        } catch {
                             console.warn(`Candidate ID ${candidateId} could not be fetched directly.`);
                         }
                     }
