@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
-import PartyPerformance from "./PartyPerformance";
 
 export default function PartyCard({ party }) {
     const partyId =

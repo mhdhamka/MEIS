@@ -4,7 +4,6 @@ import {
     Users,
     Target,
     MapPin,
-    ArrowUpRight,
 } from "lucide-react";
 
 function formatNumber(value) {
