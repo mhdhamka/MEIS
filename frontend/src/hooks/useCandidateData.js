@@ -345,7 +345,6 @@ export function useCandidateData(candidateId = null, initialFilters = {}) {
                     partiesResponse,
                     seatsResponse,
                     statesResponse,
-                    singleCandidateResponse,
                 ] = await Promise.all([
                     api.getCandidates(cleanFilters),
                     api.getResults(),
@@ -353,30 +352,33 @@ export function useCandidateData(candidateId = null, initialFilters = {}) {
                     api.getParties(),
                     api.getSeats(),
                     api.getStates().catch(() => []),
-                    candidateId ? api.getCandidate(candidateId).catch(() => null) : Promise.resolve(null),
                 ]);
 
                 if (!mounted) return;
 
                 let candidatesList = asArray(candidatesResponse);
 
-                if (singleCandidateResponse) {
+                if (candidateId) {
                     const targetId = String(candidateId);
                     const alreadyIncluded = candidatesList.some((item) => {
-                        const id = firstDefined(
-                            item.candidate_id,
-                            item.candidateId,
-                            item.id,
-                            item.CandidateID,
-                            item.CANDIDATE_ID
-                        );
-                        return id !== undefined && String(id) === targetId;
+                        const normalizedItem = normalizeCandidate(item, 0);
+                        return String(normalizedItem.candidateId) === targetId;
                     });
 
                     if (!alreadyIncluded) {
-                        candidatesList = [...candidatesList, singleCandidateResponse];
+                        try {
+                            const singleResponse = await api.getCandidate(candidateId);
+                            const singleCandidate = unwrap(singleResponse);
+                            if (singleCandidate && mounted) {
+                                candidatesList = [...candidatesList, singleCandidate];
+                            }
+                        } catch {
+                            console.warn(`Candidate ID ${candidateId} could not be fetched directly.`);
+                        }
                     }
                 }
+
+                if (!mounted) return;
 
                 setCandidatesRaw(candidatesList);
                 setResultsRaw(asArray(resultsResponse));
@@ -456,7 +458,6 @@ export function useCandidateData(candidateId = null, initialFilters = {}) {
             }
         }
 
-        // Apply client-side filtering for 'result' if chosen (WIN/LOSS)
         let finalArray = Array.from(map.values()).map((candidate) => {
             const history = candidate.history || [];
             const latest = history.length > 0 ? history[history.length - 1] : candidate;
