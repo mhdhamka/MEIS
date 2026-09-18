@@ -30,7 +30,7 @@ export default function Parties() {
 
                 const [partyResponse, electionResponse] =
                     await Promise.all([
-                        api.getParties(),
+                        api.getParties(electionFilter !== "all" ? electionFilter : null),
                         api.getElections(),
                     ]);
 
@@ -83,7 +83,7 @@ export default function Parties() {
             mounted = false;
         };
 
-    }, []);
+    }, [electionFilter]);
 
     const filteredParties = useMemo(() => {
         const query = search
@@ -364,6 +364,10 @@ export default function Parties() {
                                     }
                                     className="transition-all duration-300 hover:-translate-y-1"
                                 >
+                                    {/* 
+                                      Ensure PartyCard receives standard fields expected from analytics.py 
+                                      such as seats_won, seats_contested, candidates, and vote_share.
+                                    */}
                                     <PartyCard party={party} />
                                 </div>
                             ))}
