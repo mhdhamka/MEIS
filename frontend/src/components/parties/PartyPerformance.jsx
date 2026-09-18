@@ -25,7 +25,7 @@ export default function PartyPerformance() {
                 setLoading(true);
                 const response = await api.get(`/parties/${id}/performance`);
                 setPerformance(response.data?.data || response.data);
-            } catch (err) {
+            } catch {
                 setError("Historical party performance is not available from the current API.");
             } finally {
                 setLoading(false);
@@ -53,7 +53,6 @@ export default function PartyPerformance() {
 
     const seats = Number(performance.seats_won ?? 0);
     const candidates = Number(performance.candidates ?? 0);
-    const totalVotes = Number(performance.total_votes ?? 0);
     const wins = Number(performance.seats_won ?? 0);
     
     const winRate = candidates > 0 ? (wins / candidates) * 100 : 0;

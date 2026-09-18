@@ -47,7 +47,7 @@ export default function PartyProfile({ party }) {
 
     const wins = Number(
         party.wins ??
-        party.seats_won ??
+        seatsWon ??
         0
     );
 
@@ -64,11 +64,6 @@ export default function PartyProfile({ party }) {
                 : seatsContested > 0
                     ? (seatsWon / seatsContested) * 100
                     : 0;
-
-    const voteShare =
-        party.vote_share !== undefined && party.vote_share !== null
-            ? Number(party.vote_share)
-            : null;
 
     const history =
         Array.isArray(party.history)
