@@ -1,4 +1,3 @@
-```markdown
 # Data Dictionary & Database Architecture: MEIS (Malaysia Election Intelligence System)
 
 ## 1. Architectural Roadmap & Technology Stack
@@ -69,25 +68,9 @@
 Stores high-level state or territory entities.
 
 | Column | Type | Attributes | Null | Default | Extra | Links to / Comments |
-| --- | --- | --- | --- | --- | --- | --- |
-| `state_id`<br> | `int(11)`<br> | Primary Key
-
- | No
-
- | —
-
- | auto increment
-
- | Unique identifier for the state |
-| `state_name`<br> | `varchar(100)`<br> | —
-
- | No
-
- | —
-
- | —
-
- | Official name of the state or federal territory |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `state_id` | `int(11)` | Primary Key | No | — | auto increment | Unique identifier for the state |
+| `state_name` | `varchar(100)` | — | No | — | — | Official name of the state or federal territory |
 
 ---
 
@@ -96,54 +79,12 @@ Stores high-level state or territory entities.
 Stores electoral districts or constituencies.
 
 | Column | Type | Attributes | Null | Default | Extra | Links to / Comments |
-| --- | --- | --- | --- | --- | --- | --- |
-| `seat_id`<br> | `int(11)`<br> | Primary Key
-
- | No
-
- | —
-
- | auto increment
-
- | Unique identifier for the seat |
-| `seat_code`<br> | `varchar(20)`<br> | —
-
- | No
-
- | —
-
- | —
-
- | Official alphanumeric code/abbreviation (e.g., P.192) |
-| `seat_name`<br> | `varchar(150)`<br> | —
-
- | No
-
- | —
-
- | —
-
- | Formal name of the constituency |
-| `seat_type`<br> | `enum('Parliament', 'State Assembly')`<br> | —
-
- | No
-
- | —
-
- | —
-
- | Classification of the legislative level |
-| `state_id`<br> | `int(11)`<br> | Foreign Key
-
- | No
-
- | —
-
- | —
-
- | Links to `states.state_id` (CASCADE)
-
- |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `seat_id` | `int(11)` | Primary Key | No | — | auto increment | Unique identifier for the seat |
+| `seat_code` | `varchar(20)` | — | No | — | — | Official alphanumeric code/abbreviation (e.g., P.192) |
+| `seat_name` | `varchar(150)` | — | No | — | — | Formal name of the constituency |
+| `seat_type` | `enum('Parliament', 'State Assembly')` | — | No | — | — | Classification of the legislative level |
+| `state_id` | `int(11)` | Foreign Key | No | — | — | Links to `states.state_id` (CASCADE) |
 
 ---
 
@@ -152,25 +93,9 @@ Stores electoral districts or constituencies.
 Stores registered political parties.
 
 | Column | Type | Attributes | Null | Default | Extra | Links to / Comments |
-| --- | --- | --- | --- | --- | --- | --- |
-| `party_id`<br> | `int(11)`<br> | Primary Key
-
- | No
-
- | —
-
- | auto increment
-
- | Unique identifier for the political party |
-| `party_name`<br> | `varchar(150)`<br> | —
-
- | No
-
- | —
-
- | —
-
- | Official registered name of the political party |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `party_id` | `int(11)` | Primary Key | No | — | auto increment | Unique identifier for the political party |
+| `party_name` | `varchar(150)` | — | No | — | — | Official registered name of the political party |
 
 ---
 
@@ -179,52 +104,12 @@ Stores registered political parties.
 Stores individual candidates contesting elections.
 
 | Column | Type | Attributes | Null | Default | Extra | Links to / Comments |
-| --- | --- | --- | --- | --- | --- | --- |
-| `candidate_id`<br> | `int(11)`<br> | Primary Key
-
- | No
-
- | —
-
- | auto increment
-
- | Unique system identifier for the candidate |
-| `candidate_uid`<br> | `varchar(100)`<br> | —
-
- | Yes
-
- | `NULL`<br> | —
-
- | External dataset tracking or national identity reference code |
-| `candidate_name`<br> | `varchar(255)`<br> | —
-
- | No
-
- | —
-
- | —
-
- | Full legal name of the candidate |
-| `party_id`<br> | `int(11)`<br> | Foreign Key
-
- | Yes
-
- | `NULL`<br> | —
-
- | Links to `parties.party_id` (SET NULL)
-
- |
-| `seat_id`<br> | `int(11)`<br> | Foreign Key
-
- | No
-
- | —
-
- | —
-
- | Links to `seats.seat_id` (CASCADE)
-
- |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `candidate_id` | `int(11)` | Primary Key | No | — | auto increment | Unique system identifier for the candidate |
+| `candidate_uid` | `varchar(100)` | — | Yes | `NULL` | — | External dataset tracking or national identity reference code |
+| `candidate_name` | `varchar(255)` | — | No | — | — | Full legal name of the candidate |
+| `party_id` | `int(11)` | Foreign Key | Yes | `NULL` | — | Links to `parties.party_id` (SET NULL) |
+| `seat_id` | `int(11)` | Foreign Key | No | — | — | Links to `seats.seat_id` (CASCADE) |
 
 ---
 
@@ -233,43 +118,11 @@ Stores individual candidates contesting elections.
 Stores metadata regarding election cycles.
 
 | Column | Type | Attributes | Null | Default | Extra | Links to / Comments |
-| --- | --- | --- | --- | --- | --- | --- |
-| `election_id`<br> | `int(11)`<br> | Primary Key
-
- | No
-
- | —
-
- | auto increment
-
- | Unique identifier for the election event |
-| `election_name`<br> | `varchar(100)`<br> | —
-
- | No
-
- | —
-
- | —
-
- | Descriptive name (e.g., "15th General Election") |
-| `election_year`<br> | `int(11)`<br> | —
-
- | No
-
- | —
-
- | —
-
- | Calendar year of the election |
-| `election_type`<br> | `varchar(50)`<br> | —
-
- | No
-
- | —
-
- | —
-
- | Classification (e.g., General Election, State Election) |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `election_id` | `int(11)` | Primary Key | No | — | auto increment | Unique identifier for the election event |
+| `election_name` | `varchar(100)` | — | No | — | — | Descriptive name (e.g., "15th General Election") |
+| `election_year` | `int(11)` | — | No | — | — | Calendar year of the election |
+| `election_type` | `varchar(50)` | — | No | — | — | Classification (e.g., General Election, State Election) |
 
 ---
 
@@ -278,80 +131,12 @@ Stores metadata regarding election cycles.
 Stores detailed vote counts and outcome outcomes per candidate per contest.
 
 | Column | Type | Attributes | Null | Default | Extra | Links to / Comments |
-| --- | --- | --- | --- | --- | --- | --- |
-| `result_id`<br> | `int(11)`<br> | Primary Key
-
- | No
-
- | —
-
- | auto increment
-
- | Unique record identifier |
-| `election_id`<br> | `int(11)`<br> | Foreign Key
-
- | No
-
- | —
-
- | —
-
- | Links to `elections.election_id` (CASCADE)
-
- |
-| `seat_id`<br> | `int(11)`<br> | Foreign Key
-
- | No
-
- | —
-
- | —
-
- | Links to `seats.seat_id` (CASCADE)
-
- |
-| `candidate_id`<br> | `int(11)`<br> | Foreign Key
-
- | No
-
- | —
-
- | —
-
- | Links to `candidates.candidate_id` (CASCADE)
-
- |
-| `party_id`<br> | `int(11)`<br> | Foreign Key
-
- | Yes
-
- | `NULL`<br> | —
-
- | Links to `parties.party_id` (SET NULL)
-
- |
-| `total_votes`<br> | `int(11)`<br> | —
-
- | No
-
- | `0`<br> | —
-
- | Aggregate votes garnered by the candidate |
-| `vote_percentage`<br> | `decimal(8,4)`<br> | —
-
- | Yes
-
- | `NULL`<br> | —
-
- | Proportion of popular votes secured in the seat |
-| `result_status`<br> | `varchar(50)`<br> | —
-
- | Yes
-
- | `NULL`<br> | —
-
- | Outcome indicator (e.g., Won, Lost) |
-
-```
-
-```
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `result_id` | `int(11)` | Primary Key | No | — | auto increment | Unique record identifier |
+| `election_id` | `int(11)` | Foreign Key | No | — | — | Links to `elections.election_id` (CASCADE) |
+| `seat_id` | `int(11)` | Foreign Key | No | — | — | Links to `seats.seat_id` (CASCADE) |
+| `candidate_id` | `int(11)` | Foreign Key | No | — | — | Links to `candidates.candidate_id` (CASCADE) |
+| `party_id` | `int(11)` | Foreign Key | Yes | `NULL` | — | Links to `parties.party_id` (SET NULL) |
+| `total_votes` | `int(11)` | — | No | `0` | — | Aggregate votes garnered by the candidate |
+| `vote_percentage` | `decimal(8,4)` | — | Yes | `NULL` | — | Proportion of popular votes secured in the seat |
+| `result_status` | `varchar(50)` | — | Yes | `NULL` | — | Outcome indicator (e.g., Won, Lost) |
