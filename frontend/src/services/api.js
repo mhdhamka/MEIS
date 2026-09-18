@@ -98,8 +98,13 @@ export async function getCandidate(id) {
     }
 }
 
-export function getParties() {
-    return request("/parties/");
+/**
+ * Fixed: Always routes through getPartyPerformance to guarantee 
+ * candidate counts, seats won, and vote shares populate even when electionId is "all".
+ */
+export async function getParties(electionId = null, seatType = null) {
+    const activeElectionId = electionId && electionId !== "all" ? electionId : null;
+    return getPartyPerformance(activeElectionId, seatType);
 }
 
 export async function getParty(id) {
@@ -153,7 +158,7 @@ export async function getConstituencyHistory(seatId) {
 }
 
 // ============================================================
-// RESULTS & MAPS (Updated to include /analytics prefix)
+// RESULTS & MAPS
 // ============================================================
 
 export async function getElectionResults(

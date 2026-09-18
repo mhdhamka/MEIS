@@ -40,6 +40,12 @@ export default function PartyCard({ party }) {
         0
     );
 
+    const seatsContested = Number(
+        party.seats_contested ??
+        party.contested_seats ??
+        0
+    );
+
     const wins = Number(
         party.wins ??
         party.seats_won ??
@@ -51,7 +57,9 @@ export default function PartyCard({ party }) {
             ? Number(party.win_rate)
             : candidates > 0
                 ? (wins / candidates) * 100
-                : 0;
+                : seatsContested > 0
+                    ? (seats / seatsContested) * 100
+                    : 0;
 
     const voteShare =
         party.vote_share !== undefined && party.vote_share !== null
@@ -90,11 +98,7 @@ export default function PartyCard({ party }) {
                     />
                 </div>
 
-                <p className="text-sm font-extrabold text-[#134074]">
-                    {rawPartyCode || partyCode}
-                </p>
-
-                {/* Metrics Grid Layout via PartyPerformance Component */}
+                {/* Metrics Grid Layout */}
                 <div className="mt-5 border-t border-slate-100 pt-4 bg-slate-50/50 -mx-5 -mb-5 p-5">
                     <div className="grid grid-cols-2 gap-3">
                         <Metric
@@ -104,7 +108,7 @@ export default function PartyCard({ party }) {
 
                         <Metric
                             label="Candidates"
-                            value={candidates.toLocaleString()}
+                            value={candidates > 0 ? candidates.toLocaleString() : (seatsContested > 0 ? seatsContested.toLocaleString() : "—")}
                         />
 
                         <Metric
@@ -115,7 +119,7 @@ export default function PartyCard({ party }) {
                         <Metric
                             label="Vote Share"
                             value={
-                                voteShare !== null
+                                voteShare !== null && !isNaN(voteShare)
                                     ? `${voteShare.toFixed(1)}%`
                                     : "—"
                             }

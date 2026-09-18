@@ -175,6 +175,13 @@ def get_party_performance(
                 p.party_name,
                 COUNT(DISTINCT er.seat_id) AS seats_contested,
                 SUM(er.total_votes) AS total_votes,
+                COUNT(DISTINCT er.candidate_id) AS candidates,
+                SUM(
+                    CASE 
+                        WHEN er.result_status IN ('won', 'won_uncontested', 'WINNER') 
+                        THEN 1 ELSE 0 
+                    END
+                ) AS seats_won,
                 ROUND(
                     SUM(er.total_votes) * 100.0 /
                     NULLIF(
@@ -215,6 +222,52 @@ def get_party_performance(
         cursor.execute(query, params)
 
         return cursor.fetchall()
+
+    finally:
+        cursor.close()
+        connection.close()
+
+
+@router.get("/parties/{party_id}/performance")
+def get_single_party_performance(party_id: int):
+    connection = get_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    try:
+        # Fetch aggregated KPIs and election breakdown specifically for performance tracking
+        cursor.execute("""
+            SELECT 
+                p.party_id,
+                p.party_name,
+                p.party_code,
+                COUNT(DISTINCT er.seat_id) AS seats_won,
+                COUNT(DISTINCT er.candidate_id) AS candidates,
+                SUM(er.total_votes) AS total_votes
+            FROM parties p
+            LEFT JOIN election_results er ON p.party_id = er.party_id
+            WHERE p.party_id = %s
+            GROUP BY p.party_id, p.party_name, p.party_code
+        """, (party_id,))
+        
+        performance_data = cursor.fetchone()
+        if not performance_data:
+            raise HTTPException(status_code=404, detail="Party not found")
+
+        # Fetch historical election breakdown
+        cursor.execute("""
+            SELECT 
+                e.election_year AS election,
+                COUNT(DISTINCT er.seat_id) AS seats_won,
+                SUM(er.total_votes) AS total_votes
+            FROM election_results er
+            JOIN elections e ON er.election_id = e.election_id
+            WHERE er.party_id = %s
+            GROUP BY e.election_id, e.election_year
+            ORDER BY e.election_year DESC
+        """, (party_id,))
+        performance_data["history"] = cursor.fetchall()
+
+        return {"data": performance_data}
 
     finally:
         cursor.close()

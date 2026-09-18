@@ -1,3 +1,6 @@
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { api } from "../../services/api";
 import {
     Trophy,
     Percent,
@@ -10,46 +13,62 @@ function formatNumber(value) {
     return Number(value || 0).toLocaleString();
 }
 
-export default function PartyPerformance({ party = {} }) {
-    const seats = Number(
-        party.seats_won ??
-        party.seats ??
-        party.seat_count ??
-        0
-    );
+export default function PartyPerformance() {
+    const { id } = useParams();
+    const [performance, setPerformance] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    const candidates = Number(
-        party.candidates ??
-        party.candidate_count ??
-        party.total_candidates ??
-        0
-    );
+    useEffect(() => {
+        async function fetchPerformance() {
+            try {
+                setLoading(true);
+                const response = await api.get(`/parties/${id}/performance`);
+                setPerformance(response.data?.data || response.data);
+            } catch {
+                setError("Historical party performance is not available from the current API.");
+            } finally {
+                setLoading(false);
+            }
+        }
 
-    const wins = Number(
-        party.wins ??
-        party.seats_won ??
-        0
-    );
+        if (id) {
+            fetchPerformance();
+        }
+    }, [id]);
 
-    const winRate =
-        party.win_rate !== undefined
-            ? Number(party.win_rate)
-            : candidates > 0
-                ? (wins / candidates) * 100
-                : 0;
+    if (loading) {
+        return <div className="p-6 text-sm text-slate-500">Loading performance metrics...</div>;
+    }
 
-    const voteShare =
-        party.vote_share !== undefined && party.vote_share !== null
-            ? Number(party.vote_share)
-            : null;
+    if (error || !performance) {
+        return (
+            <div className="mt-5 rounded-xl border border-dashed border-slate-200 p-8 text-center bg-white/75 backdrop-blur-xl">
+                <p className="text-sm text-slate-500">
+                    {error || "Historical party performance is not available from the current API."}
+                </p>
+            </div>
+        );
+    }
 
+    const seats = Number(performance.seats_won ?? 0);
+    const candidates = Number(performance.candidates ?? 0);
+    const wins = Number(performance.seats_won ?? 0);
+    
+    const winRate = candidates > 0 ? (wins / candidates) * 100 : 0;
+    const voteShare = performance.vote_share !== undefined && performance.vote_share !== null 
+        ? Number(performance.vote_share) 
+        : null;
+    
     const geographicCount = Number(
-        party.states_contested ??
-        party.geographic_distribution ??
-        party.state_count ??
-        party.regionsCount ??
+        performance.states_contested ??
+        performance.geographic_distribution ??
+        performance.state_count ??
+        performance.regionsCount ??
         0
     );
+
+    const history = Array.isArray(performance.history) ? performance.history : [];
 
     return (
         <div className="space-y-6">
@@ -154,6 +173,41 @@ export default function PartyPerformance({ party = {} }) {
                         Regional electoral footprint
                     </p>
                 </div>
+            </div>
+
+            {/* Performance History Table */}
+            <div className="rounded-2xl bg-white/75 backdrop-blur-xl border border-white/60 p-6 shadow-xl shadow-slate-200/50">
+                <h2 className="text-lg font-bold text-slate-900">Party Performance History</h2>
+                <p className="mt-1 text-sm text-slate-500">Electoral performance breakdown across general elections.</p>
+
+                {history.length > 0 ? (
+                    <div className="mt-6 overflow-x-auto">
+                        <table className="w-full min-w-[500px] text-left">
+                            <thead>
+                                <tr className="border-b border-slate-100">
+                                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">Election Year</th>
+                                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">Seats Won</th>
+                                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">Votes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {history.map((item, index) => (
+                                    <tr key={index} className="border-b border-slate-50 last:border-0">
+                                        <td className="px-4 py-4 text-sm font-bold text-slate-900">{item.election}</td>
+                                        <td className="px-4 py-4 text-sm font-bold text-slate-700">{item.seats_won}</td>
+                                        <td className="px-4 py-4 text-sm font-semibold text-slate-600">
+                                            {item.total_votes ? Number(item.total_votes).toLocaleString() : "—"}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <div className="mt-5 rounded-xl border border-dashed border-slate-200 p-8 text-center">
+                        <p className="text-sm text-slate-500">Historical party performance is not available from the current API.</p>
+                    </div>
+                )}
             </div>
         </div>
     );

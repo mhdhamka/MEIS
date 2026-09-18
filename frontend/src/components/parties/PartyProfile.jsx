@@ -28,24 +28,42 @@ export default function PartyProfile({ party }) {
     const seatsWon = Number(
         party.seats_won ??
         party.seats ??
+        party.seat_count ??
         0
     );
 
     const candidates = Number(
         party.candidates ??
         party.candidate_count ??
+        party.total_candidates ??
+        0
+    );
+
+    const seatsContested = Number(
+        party.seats_contested ??
+        party.contested_seats ??
         0
     );
 
     const wins = Number(
         party.wins ??
-        seatsWon
+        seatsWon ??
+        0
     );
 
     const losses = Number(
         party.losses ??
-        Math.max(candidates - wins, 0)
+        Math.max(candidates - wins, seatsContested - seatsWon, 0)
     );
+
+    const winRate =
+        party.win_rate !== undefined
+            ? Number(party.win_rate)
+            : candidates > 0
+                ? (wins / candidates) * 100
+                : seatsContested > 0
+                    ? (seatsWon / seatsContested) * 100
+                    : 0;
 
     const history =
         Array.isArray(party.history)
@@ -114,25 +132,6 @@ export default function PartyProfile({ party }) {
                             </p>
                         </div>
                     </div>
-
-                    <Link
-                        to={`/map?party=${encodeURIComponent(rawPartyCode || partyCode)}`}
-                        className="
-                            inline-flex
-                            items-center
-                            justify-center
-                            rounded-xl
-                            bg-[#134074]
-                            px-5 py-3
-                            text-sm
-                            font-bold
-                            text-white
-                            transition
-                            hover:bg-[#0f3159]
-                        "
-                    >
-                        Explore on Electoral Map →
-                    </Link>
                 </div>
             </section>
 
@@ -220,7 +219,7 @@ export default function PartyProfile({ party }) {
             </section>
 
 
-            {/* Candidate Breakdown */}
+            {/* Candidate Breakdown & Extended Stats */}
             <section className="
                 rounded-2xl
                 border border-slate-200
@@ -229,29 +228,35 @@ export default function PartyProfile({ party }) {
                 shadow-sm
             ">
                 <SectionHeader
-                    title="Candidate Performance"
-                    description="Candidate participation and election outcomes."
+                    title="Candidate Performance & Metrics"
+                    description="Candidate participation, outcome metrics, and vote proportions."
                 />
 
                 <div className="
                     mt-6
                     grid
                     gap-4
-                    sm:grid-cols-3
+                    sm:grid-cols-2
+                    xl:grid-cols-4
                 ">
                     <MiniStat
                         label="Candidates"
-                        value={candidates}
+                        value={candidates > 0 ? candidates : seatsContested}
                     />
 
                     <MiniStat
-                        label="Wins"
+                        label="Wins (Seats Won)"
                         value={wins}
                     />
 
                     <MiniStat
                         label="Losses"
                         value={losses}
+                    />
+
+                    <MiniStat
+                        label="Win Rate"
+                        value={`${winRate.toFixed(1)}%`}
                     />
                 </div>
             </section>
@@ -324,7 +329,7 @@ function MiniStat({ label, value }) {
             </p>
 
             <p className="mt-1 text-xl font-black text-slate-900">
-                {Number(value).toLocaleString()}
+                {typeof value === "number" ? value.toLocaleString() : value}
             </p>
         </div>
     );
