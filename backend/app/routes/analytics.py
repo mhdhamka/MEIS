@@ -228,7 +228,7 @@ def get_party_performance(
         connection.close()
 
 
-@router.get("/parties/{party_id}/performance")
+@router.get("/analytics/parties/{party_id}/performance")
 def get_single_party_performance(party_id: int):
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)

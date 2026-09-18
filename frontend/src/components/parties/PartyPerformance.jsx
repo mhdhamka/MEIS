@@ -23,7 +23,7 @@ export default function PartyPerformance() {
         async function fetchPerformance() {
             try {
                 setLoading(true);
-                const response = await api.get(`/parties/${id}/performance`);
+                const response = await api.get(`/analytics/parties/${id}/performance`);
                 setPerformance(response.data?.data || response.data);
             } catch {
                 setError("Historical party performance is not available from the current API.");
