@@ -83,25 +83,7 @@ export default function PartyProfile({ party }) {
             ">
                 <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                     <div className="flex items-center gap-4">
-                        <div 
-                            className="
-                                flex h-20 w-20
-                                shrink-0
-                                items-center justify-center
-                                rounded-2xl
-                                bg-slate-900
-                                text-xl
-                                font-black
-                                text-white
-                                tracking-wider
-                                overflow-hidden
-                                text-center
-                                px-1
-                            "
-                            title={partyName}
-                        >
-                            <span className="truncate">{partyCode}</span>
-                        </div>
+                        
 
                         <div>
                             <p className="

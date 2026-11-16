@@ -13,7 +13,7 @@ export default function QuickActions() {
     <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-white/80 via-white/50 to-white/30 backdrop-blur-2xl border border-white/60 shadow-2xl shadow-blue-900/15 text-slate-950 transition-all duration-300">
       <div className="flex items-center justify-between mb-5">
         <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">
-          Explore Intelligence Shortcuts
+          Explore Shortcuts
         </h3>
         <span className="text-[11px] font-extrabold text-[#134074] px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 backdrop-blur-md">
           Quick Navigation
