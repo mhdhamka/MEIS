@@ -72,9 +72,7 @@ export default function Sidebar() {
       {/* Navigation Links */}
       <nav className="p-4 space-y-6 flex-1 overflow-y-auto">
         <div>
-          <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
-            System Modules
-          </p>
+          
           <div className="space-y-1.5">
             {navigation.map((item) => {
               const Icon = item.icon;

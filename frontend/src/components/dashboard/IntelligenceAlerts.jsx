@@ -15,7 +15,7 @@ export default function IntelligenceAlerts({ alerts = [] }) {
             <span className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600 shadow-xs">
               <BellRing size={14} className="animate-pulse" />
             </span>
-            Intelligence Alerts & System Notices
+            Alerts & System Notices
           </h3>
           <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-700 border border-amber-500/20 backdrop-blur-md shadow-2xs">
             {activeCount} Active
