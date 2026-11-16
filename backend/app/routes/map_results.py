@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query
 from app.database.connection import get_connection
+import psycopg2.extras
 
 router = APIRouter(
     tags=["Map"]
@@ -8,19 +9,6 @@ router = APIRouter(
 
 # ============================================================
 # GET /api/v1/map/results
-#
-# Purpose-built for the map page (plan step 21/30):
-#
-#   - Returns ONE row per seat: the winner + seat-level metrics.
-#   - Never returns geometry — the frontend already has the
-#     GeoJSON cached (useGeoSpatialData) and merges this analytics
-#     payload into it by seat_code. That's what makes "geometry
-#     does not refetch, analytics does refetch" possible: this
-#     endpoint is cheap and small, so it's safe to call every
-#     time `election_id` changes without touching the map's
-#     GeoJSON cache at all.
-#
-# If election_id is omitted, the most recent election is used.
 # ============================================================
 
 @router.get("/results")
@@ -34,7 +22,8 @@ def get_map_results(
 
     try:
         connection = get_connection()
-        cursor = connection.cursor(dictionary=True)
+        # FIX: Use psycopg2 RealDictCursor for PostgreSQL compatibility
+        cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
         # --------------------------------------------------
         # RESOLVE ELECTION_ID (default: most recent election)
@@ -121,10 +110,10 @@ def get_map_results(
                 ON er.party_id = p.party_id
 
             WHERE
-                er.result_status = 'WINNER'
+                er.result_status IN ('won', 'won_uncontested', 'WINNER')
                 AND er.election_id = %s
-                AND (%s IS NULL OR s.seat_type = %s)
-                AND (%s IS NULL OR st.state_name = %s)
+                AND (%s::text IS NULL OR s.seat_type = %s)
+                AND (%s::text IS NULL OR st.state_name = %s)
 
             ORDER BY s.seat_code
         """
@@ -140,17 +129,6 @@ def get_map_results(
         cursor.execute(query, params)
         rows = cursor.fetchall()
 
-        # --------------------------------------------------
-        # TURNOUT — NOT YET COMPUTABLE
-        #
-        # Turnout needs a registered-voters figure per seat, which
-        # doesn't exist in this schema (seats/states have no
-        # electorate column). Wiring it in later just means adding
-        # that column and a `turnout = votes_cast / registered * 100`
-        # line here — the frontend already treats `turnout: null`
-        # as "N/A" (see ConstituencyInspector.jsx), so nothing else
-        # needs to change when this is added.
-        # --------------------------------------------------
         for row in rows:
             row["turnout"] = None
 

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-
 from app.database.connection import get_connection
+import psycopg2.extras
 
 
 router = APIRouter(
@@ -20,7 +20,8 @@ def get_parties():
 
     try:
         connection = get_connection()
-        cursor = connection.cursor(dictionary=True)
+        # FIX: Use psycopg2 RealDictCursor for PostgreSQL compatibility
+        cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
         query = """
             SELECT
@@ -67,7 +68,8 @@ def get_party(party_id: int):
 
     try:
         connection = get_connection()
-        cursor = connection.cursor(dictionary=True)
+        # FIX: Use psycopg2 RealDictCursor for PostgreSQL compatibility
+        cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
         query = """
             SELECT

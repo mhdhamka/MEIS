@@ -1,7 +1,11 @@
 from pathlib import Path
-
+import os
 import pandas as pd
-import mysql.connector
+import psycopg2
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 # ============================================================
@@ -17,13 +21,11 @@ DATA_FILE = (
     / "election_results_clean.csv"
 )
 
-DATABASE_CONFIG = {
-    "host": "localhost",
-    "port": 3306,
-    "user": "root",
-    "password": "",
-    "database": "malaysia_election_intelligence"
-}
+# Uses environment variable for cloud Postgres (Neon/Supabase) or falls back to local
+DATABASE_URL = os.getenv(
+    "DATABASE_URL", 
+    "postgresql://postgres:postgres@localhost:5432/malaysia_election_intelligence"
+)
 
 
 # ============================================================
@@ -31,14 +33,7 @@ DATABASE_CONFIG = {
 # ============================================================
 
 def get_connection():
-
-    return mysql.connector.connect(
-        host=DATABASE_CONFIG["host"],
-        port=DATABASE_CONFIG["port"],
-        user=DATABASE_CONFIG["user"],
-        password=DATABASE_CONFIG["password"],
-        database=DATABASE_CONFIG["database"]
-    )
+    return psycopg2.connect(DATABASE_URL)
 
 
 # ============================================================
@@ -90,9 +85,10 @@ def load_states(cursor, df):
     )
 
     query = """
-        INSERT IGNORE INTO states
+        INSERT INTO states
         (state_name)
         VALUES (%s)
+        ON CONFLICT (state_name) DO NOTHING
     """
 
     count = 0
@@ -126,9 +122,10 @@ def load_parties(cursor, df):
     )
 
     query = """
-        INSERT IGNORE INTO parties
+        INSERT INTO parties
         (party_name)
         VALUES (%s)
+        ON CONFLICT (party_name) DO NOTHING
     """
 
     count = 0
@@ -168,13 +165,14 @@ def load_elections(cursor, df):
     )
 
     query = """
-        INSERT IGNORE INTO elections
+        INSERT INTO elections
         (
             election_name,
             election_year,
             election_type
         )
         VALUES (%s, %s, %s)
+        ON CONFLICT (election_name, election_year) DO NOTHING
     """
 
     count = 0
@@ -243,7 +241,7 @@ def load_seats(cursor, df):
     )
 
     query = """
-        INSERT IGNORE INTO seats
+        INSERT INTO seats
         (
             seat_code,
             seat_name,
@@ -251,6 +249,7 @@ def load_seats(cursor, df):
             state_id
         )
         VALUES (%s, %s, %s, %s)
+        ON CONFLICT (seat_code, seat_name) DO NOTHING
     """
 
     count = 0
@@ -326,7 +325,7 @@ def load_candidates(cursor, df):
     )
 
     query = """
-        INSERT IGNORE INTO candidates
+        INSERT INTO candidates
         (
             candidate_uid,
             candidate_name,
@@ -334,6 +333,7 @@ def load_candidates(cursor, df):
             seat_id
         )
         VALUES (%s, %s, %s, %s)
+        ON CONFLICT (candidate_uid, seat_id) DO NOTHING
     """
 
     count = 0
@@ -420,7 +420,7 @@ def load_results(cursor, df):
     print("\n[6/6] Loading election results...")
 
     query = """
-        INSERT IGNORE INTO election_results
+        INSERT INTO election_results
         (
             election_id,
             seat_id,
@@ -431,6 +431,7 @@ def load_results(cursor, df):
             result_status
         )
         VALUES (%s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT (election_id, candidate_id) DO NOTHING
     """
 
     count = 0
@@ -602,7 +603,7 @@ def main():
 
     print("=" * 60)
     print("Malaysia Election Intelligence System")
-    print("MySQL Data Loading Pipeline")
+    print("PostgreSQL Data Loading Pipeline")
     print("=" * 60)
 
     print(f"\nDataset:")
@@ -634,17 +635,17 @@ def main():
     )
 
     # --------------------------------------------------------
-    # Connect MySQL
+    # Connect PostgreSQL
     # --------------------------------------------------------
 
-    print("\nConnecting to MySQL...")
+    print("\nConnecting to PostgreSQL...")
 
     connection = get_connection()
 
     cursor = connection.cursor()
 
     print(
-        "[OK] MySQL connection established"
+        "[OK] PostgreSQL connection established"
     )
 
     try:
@@ -713,7 +714,7 @@ def main():
         connection.close()
 
         print(
-            "\nMySQL connection closed."
+            "\nPostgreSQL connection closed."
         )
 
 
