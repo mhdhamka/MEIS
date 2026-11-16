@@ -1,13 +1,9 @@
-CREATE DATABASE IF NOT EXISTS malaysia_election_intelligence;
-
-USE malaysia_election_intelligence;
-
 -- ============================================================
 -- STATES
 -- ============================================================
 
 CREATE TABLE states (
-    state_id INT AUTO_INCREMENT PRIMARY KEY,
+    state_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     state_name VARCHAR(100) NOT NULL UNIQUE
 );
 
@@ -17,7 +13,7 @@ CREATE TABLE states (
 -- ============================================================
 
 CREATE TABLE parties (
-    party_id INT AUTO_INCREMENT PRIMARY KEY,
+    party_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     party_name VARCHAR(150) NOT NULL UNIQUE
 );
 
@@ -27,7 +23,7 @@ CREATE TABLE parties (
 -- ============================================================
 
 CREATE TABLE elections (
-    election_id INT AUTO_INCREMENT PRIMARY KEY,
+    election_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     election_name VARCHAR(100) NOT NULL,
     election_year INT NOT NULL,
     election_type VARCHAR(50) NOT NULL,
@@ -44,15 +40,14 @@ CREATE TABLE elections (
 -- ============================================================
 
 CREATE TABLE seats (
-    seat_id INT AUTO_INCREMENT PRIMARY KEY,
+    seat_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
     seat_code VARCHAR(20) NOT NULL,
     seat_name VARCHAR(150) NOT NULL,
 
-    seat_type ENUM(
-        'Parliament',
-        'State Assembly'
-    ) NOT NULL,
+    seat_type VARCHAR(20) NOT NULL CHECK (
+        seat_type IN ('Parliament', 'State Assembly')
+    ),
 
     state_id INT NOT NULL,
 
@@ -72,7 +67,7 @@ CREATE TABLE seats (
 -- ============================================================
 
 CREATE TABLE candidates (
-    candidate_id INT AUTO_INCREMENT PRIMARY KEY,
+    candidate_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
     candidate_uid VARCHAR(100),
     candidate_name VARCHAR(255) NOT NULL,
@@ -100,7 +95,7 @@ CREATE TABLE candidates (
 -- ============================================================
 
 CREATE TABLE election_results (
-    result_id INT AUTO_INCREMENT PRIMARY KEY,
+    result_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
     election_id INT NOT NULL,
     seat_id INT NOT NULL,
@@ -108,7 +103,7 @@ CREATE TABLE election_results (
     party_id INT,
 
     total_votes INT NOT NULL DEFAULT 0,
-    vote_percentage DECIMAL(8,4),
+    vote_percentage NUMERIC(8,4),
 
     result_status VARCHAR(50),
 

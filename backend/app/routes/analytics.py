@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query
 from datetime import datetime, timedelta
 from app.database.connection import get_connection
+import psycopg2.extras
 
 router = APIRouter(
     tags=["Analytics"]
@@ -18,7 +19,7 @@ def get_election_results_by_id(
     offset: int = 0
 ):
     connection = get_connection()
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     try:
         query = """
@@ -39,7 +40,7 @@ def get_all_election_results(
     offset: int = 0
 ):
     connection = get_connection()
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     try:
         query = """
@@ -60,7 +61,7 @@ def get_all_election_results(
 @router.get("/overview")
 def get_overview():
     connection = get_connection()
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     try:
         cursor.execute("""
@@ -90,10 +91,9 @@ def get_election_summary(
     election_id: int | None = Query(default=None)
 ):
     connection = get_connection()
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     try:
-        # Resolve to latest election if election_id is not provided
         target_id = election_id
         if target_id is None:
             cursor.execute("SELECT election_id FROM elections ORDER BY election_year DESC LIMIT 1")
@@ -128,7 +128,7 @@ def get_election_summary(
 @router.get("/historical-trends")
 def get_historical_trends():
     connection = get_connection()
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     try:
         query = """
@@ -166,7 +166,7 @@ def get_party_performance(
     seat_type: str | None = None
 ):
     connection = get_connection()
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     try:
         query = """
@@ -189,7 +189,7 @@ def get_party_performance(
                             SELECT SUM(er2.total_votes)
                             FROM election_results er2
                             WHERE
-                                (%s IS NULL OR er2.election_id = %s)
+                                (%s::integer IS NULL OR er2.election_id = %s)
                         ),
                         0
                     ),
@@ -201,9 +201,9 @@ def get_party_performance(
             JOIN seats s
                 ON er.seat_id = s.seat_id
             WHERE
-                (%s IS NULL OR er.election_id = %s)
+                (%s::integer IS NULL OR er.election_id = %s)
                 AND
-                (%s IS NULL OR s.seat_type = %s)
+                (%s::text IS NULL OR s.seat_type = %s)
             GROUP BY
                 p.party_id,
                 p.party_name
@@ -220,7 +220,6 @@ def get_party_performance(
         )
 
         cursor.execute(query, params)
-
         return cursor.fetchall()
 
     finally:
@@ -231,10 +230,9 @@ def get_party_performance(
 @router.get("/analytics/parties/{party_id}/performance")
 def get_single_party_performance(party_id: int):
     connection = get_connection()
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     try:
-        # Fetch aggregated KPIs and election breakdown specifically for performance tracking
         cursor.execute("""
             SELECT 
                 p.party_id,
@@ -253,7 +251,6 @@ def get_single_party_performance(party_id: int):
         if not performance_data:
             raise HTTPException(status_code=404, detail="Party not found")
 
-        # Fetch historical election breakdown
         cursor.execute("""
             SELECT 
                 e.election_year AS election,
@@ -284,7 +281,7 @@ def get_seat_counts(
     seat_type: str | None = None
 ):
     connection = get_connection()
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     try:
         query = """
@@ -298,8 +295,8 @@ def get_seat_counts(
                 ON er.seat_id = s.seat_id
             WHERE
                 er.result_status IN ('won', 'won_uncontested', 'WINNER')
-                AND (%s IS NULL OR er.election_id = %s)
-                AND (%s IS NULL OR s.seat_type = %s)
+                AND (%s::integer IS NULL OR er.election_id = %s)
+                AND (%s::text IS NULL OR s.seat_type = %s)
             GROUP BY p.party_id, p.party_name
             ORDER BY seats_won DESC
         """
@@ -330,7 +327,7 @@ def get_state_performance(
     election_id: int | None = None
 ):
     connection = get_connection()
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     try:
         query = """
@@ -350,7 +347,7 @@ def get_state_performance(
             JOIN election_results er
                 ON s.seat_id = er.seat_id
             WHERE
-                (%s IS NULL OR er.election_id = %s)
+                (%s::integer IS NULL OR er.election_id = %s)
             GROUP BY
                 st.state_id,
                 st.state_name
@@ -382,7 +379,7 @@ def get_winning_margins(
     seat_type: str | None = None
 ):
     connection = get_connection()
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     try:
         query = """
@@ -416,8 +413,8 @@ def get_winning_margins(
                 ON er.party_id = p.party_id
             WHERE
                 er.result_status IN ('won', 'won_uncontested', 'WINNER')
-                AND (%s IS NULL OR er.election_id = %s)
-                AND (%s IS NULL OR s.seat_type = %s)
+                AND (%s::integer IS NULL OR er.election_id = %s)
+                AND (%s::text IS NULL OR s.seat_type = %s)
             ORDER BY winning_margin DESC
         """
 
@@ -447,7 +444,7 @@ def election_comparison(
     seat_id: int | None = None
 ):
     connection = get_connection()
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     try:
         query = """
@@ -467,12 +464,11 @@ def election_comparison(
                 ON er.candidate_id = c.candidate_id
             LEFT JOIN parties p
                 ON er.party_id = p.party_id
-            WHERE (%s IS NULL OR er.seat_id = %s)
+            WHERE (%s::integer IS NULL OR er.seat_id = %s)
             ORDER BY e.election_year DESC, er.total_votes DESC
         """
 
         cursor.execute(query, (seat_id, seat_id))
-
         return cursor.fetchall()
 
     finally:
@@ -497,7 +493,7 @@ def get_constituencies(
     limit: int = 20
 ):
     connection = get_connection()
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     try:
         base_sql = """
@@ -511,7 +507,7 @@ def get_constituencies(
         params = []
 
         if search:
-            base_sql += " AND (s.seat_name LIKE %s OR s.seat_code LIKE %s)"
+            base_sql += " AND (s.seat_name ILIKE %s OR s.seat_code ILIKE %s)"
             params.extend([f"%{search}%", f"%{search}%"])
 
         if seat_type and seat_type not in ["All Types", "all", ""]:
@@ -526,12 +522,10 @@ def get_constituencies(
             base_sql += " AND er.election_id = %s"
             params.append(election_id)
 
-        # Get total count matching criteria
         cursor.execute(f"SELECT COUNT(DISTINCT s.seat_id) as total {base_sql}", params)
         total_res = cursor.fetchone()
         total = total_res["total"] if total_res else 0
 
-        # Fetch paginated seat records with winner and calculated margin info
         query = f"""
             SELECT 
                 s.seat_id,
@@ -548,7 +542,7 @@ def get_constituencies(
                       AND er2.candidate_id <> er.candidate_id
                 ), 0) AS margin
             {base_sql}
-            GROUP BY s.seat_id, s.seat_code, s.seat_name, s.seat_type, st.state_name, p.party_name
+            GROUP BY s.seat_id, s.seat_code, s.seat_name, s.seat_type, st.state_name, p.party_name, er.total_votes, er.election_id
             ORDER BY s.seat_code ASC
             LIMIT %s OFFSET %s
         """
@@ -575,10 +569,9 @@ def get_constituencies(
 @router.get("/constituencies/{seat_id}")
 def get_constituency_profile(seat_id: int):
     connection = get_connection()
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     try:
-        # 1. Verify seat existence first to handle invalid IDs gracefully (avoiding 500 errors)
         cursor.execute("""
             SELECT 
                 s.seat_id,
@@ -595,7 +588,6 @@ def get_constituency_profile(seat_id: int):
         if not seat_base:
             raise HTTPException(status_code=404, detail="Constituency not found")
 
-        # 2. Fetch latest winning context safely via left joins
         cursor.execute("""
             SELECT 
                 p.party_name AS winner_party,
@@ -625,7 +617,6 @@ def get_constituency_profile(seat_id: int):
             "turnout": 74.7
         }
 
-        # 3. Fetch candidates running/ran in this constituency
         cursor.execute("""
             SELECT 
                 c.candidate_id,
@@ -640,7 +631,6 @@ def get_constituency_profile(seat_id: int):
         """, (seat_id,))
         candidates = cursor.fetchall()
 
-        # 4. Fetch electoral history across past election cycles for this seat
         cursor.execute("""
             SELECT 
                 e.election_year AS year,
@@ -661,15 +651,14 @@ def get_constituency_profile(seat_id: int):
         """, (seat_id,))
         history = cursor.fetchall()
 
-        # Combine base seat details, winner stats, candidates, and history into payload
-        response_data = {
-            **seat_base,
-            **winner_info,
-            "candidates": candidates,
-            "history": history
+        return {
+            "data": {
+                **seat_base,
+                **winner_info,
+                "candidates": candidates,
+                "history": history
+            }
         }
-            
-        return {"data": response_data}
     finally:
         cursor.close()
         connection.close()
@@ -684,35 +673,36 @@ def get_intelligence_alerts(
     election_id: int | None = Query(default=None)
 ):
     connection = get_connection()
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     try:
         query = """
-            SELECT
-                s.seat_code,
-                s.seat_name,
-                (
-                    er.total_votes - COALESCE(
-                        (
-                            SELECT MAX(er2.total_votes)
-                            FROM election_results er2
-                            WHERE er2.election_id = er.election_id
-                              AND er2.seat_id = er.seat_id
-                              AND er2.candidate_id <> er.candidate_id
-                        ), 0
-                    )
-                ) AS margin
-            FROM election_results er
-            JOIN seats s ON er.seat_id = s.seat_id
-            WHERE er.result_status IN ('won', 'won_uncontested', 'WINNER')
-              AND (%s IS NULL OR er.election_id = %s)
-            HAVING margin < 500
+            SELECT * FROM (
+                SELECT
+                    s.seat_code,
+                    s.seat_name,
+                    (
+                        er.total_votes - COALESCE(
+                            (
+                                SELECT MAX(er2.total_votes)
+                                FROM election_results er2
+                                WHERE er2.election_id = er.election_id
+                                  AND er2.seat_id = er.seat_id
+                                  AND er2.candidate_id <> er.candidate_id
+                            ), 0
+                        )
+                    ) AS margin
+                FROM election_results er
+                JOIN seats s ON er.seat_id = s.seat_id
+                WHERE er.result_status IN ('won', 'won_uncontested', 'WINNER')
+                  AND (%s::integer IS NULL OR er.election_id = %s)
+            ) sub
+            WHERE margin < 500
         """
         cursor.execute(query, (election_id, election_id))
         low_margins = cursor.fetchall()
 
         alerts = []
-        
         if low_margins:
             alerts.append({
                 "id": 1,
@@ -725,7 +715,7 @@ def get_intelligence_alerts(
             "id": 2,
             "type": "SYNC_OK",
             "title": f"Dataset successfully synchronized for election ID {election_id or 'latest'}",
-            "description": "All regional returns fully validated against active schema."
+            "description": "All regional returns fully validated against active PostgreSQL schema."
         })
 
         return alerts
@@ -744,9 +734,8 @@ def get_pipeline_logs(
     limit: int = Query(default=5, ge=1, le=50)
 ):
     now = datetime.now()
-    
     logs = [
-        {"timestamp": now.strftime("%H:%M:%S"), "status": "SUCCESS", "message": "Election dataset synchronized"},
+        {"timestamp": now.strftime("%H:%M:%S"), "status": "SUCCESS", "message": "Election dataset synchronized with PostgreSQL"},
         {"timestamp": (now - timedelta(seconds=15)).strftime("%H:%M:%S"), "status": "SUCCESS", "message": "Constituency records validated"},
         {"timestamp": (now - timedelta(seconds=32)).strftime("%H:%M:%S"), "status": "INFO", "message": "Candidate records updated"},
         {"timestamp": (now - timedelta(seconds=58)).strftime("%H:%M:%S"), "status": "SUCCESS", "message": "GeoJSON dataset loaded"},

@@ -1,11 +1,9 @@
-import mysql.connector
-
+import psycopg2
 from app.config.settings import settings
 
 
 def get_connection():
-
-    return mysql.connector.connect(
+    return psycopg2.connect(
         host=settings.database_host,
         port=settings.database_port,
         user=settings.database_user,

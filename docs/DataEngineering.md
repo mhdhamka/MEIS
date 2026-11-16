@@ -1,6 +1,6 @@
 # Data Engineering Documentation
 
-This document outlines the data engineering pipeline for the **Malaysia Election Intelligence System (MEIS)**. The pipeline handles data ingestion from source repositories, cleaning and transformation via Python and Pandas, and relational loading into a MySQL database.
+This document outlines the data engineering pipeline for the **Malaysia Election Intelligence System (MEIS)**. The pipeline handles data ingestion from source repositories, cleaning and transformation via Python and Pandas, and relational loading into a PostgreSQL database.
 
 ---
 
@@ -59,7 +59,7 @@ The data pipeline operates on an **Extract, Transform, Load (ETL)** architecture
 [data/processed/election_results_clean.csv] 
         │
         ▼ (3. Database Loading)
-[MySQL Database: malaysia_election_intelligence]
+[PostgreSQL Database: malaysia_election_intelligence]
 
 ```
 
@@ -90,7 +90,7 @@ The data pipeline operates on an **Extract, Transform, Load (ETL)** architecture
 
 ### Phase 3: Relational Database Loading (`loading/load_election_data.py`)
 
-* **Purpose**: Ingests the cleaned CSV dataset into a structured relational MySQL database using `mysql.connector`.
+* **Purpose**: Ingests the cleaned CSV dataset into a structured relational PostgreSQL database using `psycopg2`.
 
 * **Loading Order (Dependency Management)**:
 1. **`states`**: Extracts and loads unique administrative states.
@@ -104,7 +104,7 @@ The data pipeline operates on an **Extract, Transform, Load (ETL)** architecture
 
 ## Database Schema Reference (`database/schema.sql`)
 
-The underlying MySQL database enforces strict relational integrity using foreign keys and cascade rules:
+The underlying PostgreSQL database enforces strict relational integrity using foreign keys and cascade rules:
 * **`states`**: Stores unique state entries (`state_id`, `state_name`).
 * **`parties`**: Stores distinct political entities (`party_id`, `party_name`).
 * **`elections`**: Tracks election cycles (`election_id`, `election_name`, `election_year`, `election_type`).

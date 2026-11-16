@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Query, HTTPException
 from app.database.connection import get_connection
+import psycopg2.extras
 
 router = APIRouter(
     tags=["Candidates"]
@@ -16,7 +17,8 @@ def get_candidates(
     offset: int = Query(default=0, ge=0)
 ):
     connection = get_connection()
-    cursor = connection.cursor(dictionary=True)
+    # FIX: Use psycopg2 RealDictCursor for PostgreSQL compatibility
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     try:
         # Base filter conditions with LEFT JOIN to election_results
@@ -105,7 +107,8 @@ def get_candidates(
 @router.get("/{candidate_id}")
 def get_candidate_by_id(candidate_id: str):
     connection = get_connection()
-    cursor = connection.cursor(dictionary=True)
+    # FIX: Use psycopg2 RealDictCursor for PostgreSQL compatibility
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     try:
         query = """
             SELECT

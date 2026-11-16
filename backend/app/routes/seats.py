@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Query
 from app.database.connection import get_connection
+import psycopg2.extras
 
 router = APIRouter(
     tags=["Seats"]
@@ -12,7 +13,8 @@ def get_seats(
     state_id: int | None = Query(default=None)
 ):
     connection = get_connection()
-    cursor = connection.cursor(dictionary=True)
+    # FIX: Use psycopg2 RealDictCursor for PostgreSQL compatibility
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     query = """
         SELECT
