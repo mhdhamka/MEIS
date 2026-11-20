@@ -496,58 +496,115 @@ def get_constituencies(
     cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     try:
-        base_sql = """
-            FROM seats s
-            JOIN states st ON s.state_id = st.state_id
-            LEFT JOIN election_results er ON s.seat_id = er.seat_id 
-                AND er.result_status IN ('won', 'won_uncontested', 'WINNER')
-            LEFT JOIN parties p ON er.party_id = p.party_id
-            WHERE 1=1
-        """
-        params = []
+        where_clauses = ["1=1"]
+        params: list = []
 
         if search:
-            base_sql += " AND (s.seat_name ILIKE %s OR s.seat_code ILIKE %s)"
+            where_clauses.append("(s.seat_name ILIKE %s OR s.seat_code ILIKE %s)")
             params.extend([f"%{search}%", f"%{search}%"])
 
         if seat_type and seat_type not in ["All Types", "all", ""]:
-            base_sql += " AND s.seat_type = %s"
+            where_clauses.append("s.seat_type = %s")
             params.append(seat_type)
 
         if state and state not in ["All States", "all", ""]:
-            base_sql += " AND st.state_name = %s"
+            where_clauses.append("st.state_name = %s")
             params.append(state)
 
+        if party and party not in ["All Parties", "all", ""]:
+            where_clauses.append("p.party_name = %s")
+            params.append(party)
+
         if election_id is not None:
-            base_sql += " AND er.election_id = %s"
+            where_clauses.append("er.election_id = %s")
             params.append(election_id)
 
-        cursor.execute(f"SELECT COUNT(DISTINCT s.seat_id) as total {base_sql}", params)
+        where_sql = " AND ".join(where_clauses)
+
+        cte_sql = f"""
+            WITH ranked_results AS (
+                SELECT
+                    s.seat_id,
+                    s.seat_code,
+                    s.seat_name,
+                    s.seat_type,
+                    st.state_name,
+                    er.election_id,
+                    er.candidate_id,
+                    er.result_status,
+                    er.total_votes,
+                    p.party_name AS winner_party,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY er.election_id, er.seat_id
+                        ORDER BY er.total_votes DESC NULLS LAST, er.candidate_id ASC
+                    ) AS vote_rank,
+                    LEAD(er.total_votes) OVER (
+                        PARTITION BY er.election_id, er.seat_id
+                        ORDER BY er.total_votes DESC NULLS LAST, er.candidate_id ASC
+                    ) AS runner_up_votes
+                FROM seats s
+                JOIN states st
+                    ON s.state_id = st.state_id
+                LEFT JOIN election_results er
+                    ON s.seat_id = er.seat_id
+                LEFT JOIN parties p
+                    ON er.party_id = p.party_id
+                WHERE {where_sql}
+            ),
+            constituency_rows AS (
+                SELECT
+                    seat_id,
+                    seat_code,
+                    seat_name,
+                    seat_type,
+                    state_name,
+                    CASE
+                        WHEN result_status IN ('won', 'won_uncontested', 'WINNER') THEN winner_party
+                        ELSE NULL
+                    END AS winner_party,
+                    COALESCE(total_votes - COALESCE(runner_up_votes, 0), 0) AS margin,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY seat_id
+                        ORDER BY election_id DESC NULLS LAST, vote_rank ASC
+                    ) AS seat_row_num
+                FROM ranked_results
+                WHERE vote_rank = 1 OR vote_rank IS NULL
+            )
+        """
+
+        cursor.execute(
+            f"{cte_sql} SELECT COUNT(*) AS total FROM constituency_rows WHERE seat_row_num = 1",
+            params
+        )
         total_res = cursor.fetchone()
         total = total_res["total"] if total_res else 0
 
+        order_map = {
+            "code": "seat_code ASC",
+            "name": "seat_name ASC",
+            "state": "state_name ASC, seat_code ASC",
+            "margin": "margin DESC, seat_code ASC",
+            "margin_asc": "margin ASC, seat_code ASC",
+        }
+        order_by = order_map.get(sort, "seat_code ASC")
+
         query = f"""
-            SELECT 
-                s.seat_id,
-                s.seat_code,
-                s.seat_name,
-                s.seat_type,
-                st.state_name,
-                p.party_name AS winner_party,
-                COALESCE(er.total_votes - (
-                    SELECT MAX(er2.total_votes) 
-                    FROM election_results er2 
-                    WHERE er2.election_id = er.election_id 
-                      AND er2.seat_id = er.seat_id 
-                      AND er2.candidate_id <> er.candidate_id
-                ), 0) AS margin
-            {base_sql}
-            GROUP BY s.seat_id, s.seat_code, s.seat_name, s.seat_type, st.state_name, p.party_name, er.total_votes, er.election_id
-            ORDER BY s.seat_code ASC
+            {cte_sql}
+            SELECT
+                seat_id,
+                seat_code,
+                seat_name,
+                seat_type,
+                state_name,
+                winner_party,
+                margin
+            FROM constituency_rows
+            WHERE seat_row_num = 1
+            ORDER BY {order_by}
             LIMIT %s OFFSET %s
         """
-        
-        offset = (page - 1) * limit
+
+        offset = max(0, (page - 1) * limit)
         cursor.execute(query, params + [limit, offset])
         results = cursor.fetchall()
 
